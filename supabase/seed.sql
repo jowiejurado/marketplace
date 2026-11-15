@@ -1,0 +1,12 @@
+-- Optional: a few sample listings so the marketplace isn't empty on day one.
+-- Run after setup.sql. Photos are from Unsplash; seller emails are placeholders.
+
+insert into public.listings (title, description, price, category, seller_email, location, image_url, created_at) values
+  ('Trek road bike, 54 cm', 'Aluminium frame, Shimano Claris groupset, new tyres last spring. Rides great, small scuff on the top tube.', 420, 'Sporting Goods', 'seller@example.com', 'Palo Alto, CA', 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=1200&q=80', now() - interval '35 minutes'),
+  ('Mid-century armchair', 'Walnut frame with mustard cushions. Very comfy, no tears. Pick up only.', 180, 'Home Goods', 'seller@example.com', 'Menlo Park, CA', 'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1200&q=80', now() - interval '2 hours'),
+  ('Sony WH-1000XM4 headphones', 'Noise cancelling, black, with case and cable. Battery still lasts all day.', 165, 'Electronics', 'seller@example.com', 'Stanford, CA', 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=1200&q=80', now() - interval '5 hours'),
+  ('Acoustic guitar with gig bag', 'Yamaha FG800, solid spruce top. Great for beginners. Includes tuner and spare strings.', 150, 'Musical Instruments', 'seller@example.com', 'Mountain View, CA', 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=1200&q=80', now() - interval '1 day'),
+  ('Monstera plant in ceramic pot', 'About 90 cm tall and healthy. Moving out, needs a new home.', 35, 'Garden & Outdoor', 'seller@example.com', 'Palo Alto, CA', 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=1200&q=80', now() - interval '1 day 3 hours'),
+  ('Standing desk, 140 cm', 'Electric height adjustment with memory presets. Oak top.', 260, 'Office Supplies', 'seller@example.com', 'Sunnyvale, CA', 'https://images.unsplash.com/photo-1593062096033-9a26b09da705?w=1200&q=80', now() - interval '2 days'),
+  ('Polaroid Now camera', 'Works perfectly, white. Comes with one pack of film.', 75, 'Hobbies', 'seller@example.com', 'Stanford, CA', 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=1200&q=80', now() - interval '3 days'),
+  ('Free moving boxes', 'About 20 boxes, various sizes, flattened. Take them all!', 0, 'Free Stuff', 'seller@example.com', 'Palo Alto, CA', 'https://images.unsplash.com/photo-1600518464441-9154a4dea21b?w=1200&q=80', now() - interval '4 days');
