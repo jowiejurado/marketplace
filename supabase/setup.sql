@@ -127,17 +127,30 @@ create table if not exists public.orders (
   listing_id          uuid not null references public.listings (id) on delete restrict,
   seller_email        text not null,
   stripe_account_id   text not null,
-  stripe_session_id   text not null unique,
+  stripe_session_id   text unique,                                     -- set once Checkout opens
   amount_total        integer not null check (amount_total > 0),       -- cents
   application_fee     integer not null check (application_fee >= 0),   -- cents
   currency            text not null default 'usd',
   buyer_email         text,
-  status              text not null default 'pending' check (status in ('pending', 'paid')),
+  status              text not null default 'pending',
   created_at          timestamptz not null default now(),
   paid_at             timestamptz
 );
 
 create index if not exists orders_listing_id_idx on public.orders (listing_id);
+
+-- The order row is saved before the Checkout session exists, so the session id is filled in afterwards.
+alter table public.orders alter column stripe_session_id drop not null;
+
+-- pending: checkout open · paid: confirmed · expired: buyer never paid · canceled: buyer backed out
+alter table public.orders drop constraint if exists orders_status_check;
+alter table public.orders add constraint orders_status_check
+  check (status in ('pending', 'paid', 'expired', 'canceled'));
+
+-- One open checkout (or one sale) per listing at a time, so two buyers can't pay for the same item.
+-- Enforced by the database, so it holds even if two people click Buy now at the same moment.
+create unique index if not exists orders_one_open_per_listing
+  on public.orders (listing_id) where status in ('pending', 'paid');
 
 -- RLS on with no policies: the anon key can't read or write either table.
 -- The service role bypasses RLS, so only the server can use them.

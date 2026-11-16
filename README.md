@@ -99,6 +99,11 @@ confirmation), `src/app/api/stripe/webhook/route.ts`, `src/app/sell/payouts/*`, 
 - `sellers` and `orders` have Row Level Security on and no public policies; only the server writes them, with the
   Supabase **service-role** key. Visitors can't mark a listing sold, read orders or attach a Stripe account through the API.
 - The price, fee and seller account always come from the database on the server, never from the browser.
+- **No double sales:** Buy now saves the order first, and a unique index allows only one open checkout (or sale)
+  per listing, so a second buyer is turned away before paying. Checkout sessions expire after 31 minutes, and
+  backing out (`/orders/cancel`) closes the session at Stripe and frees the item at once.
+- **No duplicate sessions:** the order id is the idempotency key for creating the Checkout session, and is sent as
+  `client_reference_id`, so a payment can always be traced back to its order.
 - Webhook requests without a valid Stripe signature are rejected. Events for orders or accounts this app didn't
   create (the sandbox is shared) are ignored with a 200.
 - As the brief allows, there is no login, so sellers are identified by email. That means anyone who knows a seller's
@@ -106,7 +111,8 @@ confirmation), `src/app/api/stripe/webhook/route.ts`, `src/app/sell/payouts/*`, 
 
 ### Payments set-up
 
-1. Run `supabase/setup.sql` again (it's safe to re-run; it adds `sellers`, `orders` and a `status` on listings).
+1. Run `supabase/setup.sql` again (it's safe to re-run; it adds `sellers`, `orders`, a `status` on listings and the
+   one-open-checkout-per-listing rule).
 2. Add to `.env.local` and to Vercel:
    - `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API → `service_role`; server-only)
    - `STRIPE_SECRET_KEY` and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (the sandbox keys from the brief)

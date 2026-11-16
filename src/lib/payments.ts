@@ -17,12 +17,12 @@ export type Order = {
   listing_id: string;
   seller_email: string;
   stripe_account_id: string;
-  stripe_session_id: string;
+  stripe_session_id: string | null;
   amount_total: number;
   application_fee: number;
   currency: string;
   buyer_email: string | null;
-  status: "pending" | "paid";
+  status: "pending" | "paid" | "expired" | "canceled";
   created_at: string;
   paid_at: string | null;
 };
@@ -76,21 +76,42 @@ export async function syncAccount(account: Stripe.Account): Promise<Seller | nul
 export async function confirmOrder(session: Stripe.Checkout.Session): Promise<Order | null> {
   if (session.payment_status !== "paid") return null;
 
-  const { data: order, error } = await admin()
+  const paid = {
+    status: "paid",
+    paid_at: new Date().toISOString(),
+    buyer_email: session.customer_details?.email ?? null,
+    stripe_session_id: session.id,
+  };
+  // "expired" too: a payment that lands right as our hold runs out still counts.
+  const open = ["pending", "expired"];
+
+  // Find the order by session id, or by client_reference_id (our order id) if saving the session id failed.
+  let { data: order, error } = await admin()
     .from("orders")
-    .update({
-      status: "paid",
-      paid_at: new Date().toISOString(),
-      buyer_email: session.customer_details?.email ?? null,
-    })
+    .update(paid)
     .eq("stripe_session_id", session.id)
-    .eq("status", "pending")
+    .in("status", open)
     .select("*")
     .maybeSingle();
   if (error) throw error;
 
-  const confirmed = order ?? (await getOrderBySession(session.id));
-  if (!confirmed) return null; // Not one of ours (the sandbox is shared).
+  const ref = session.client_reference_id;
+  if (!order && ref && /^[0-9a-f-]{36}$/i.test(ref)) {
+    ({ data: order, error } = await admin()
+      .from("orders")
+      .update(paid)
+      .eq("id", ref)
+      .is("stripe_session_id", null)
+      .in("status", open)
+      .select("*")
+      .maybeSingle());
+    if (error) throw error;
+  }
+
+  // Already confirmed earlier (webhook and success page both call this)? Use that.
+  const existing = order ? null : await getOrderBySession(session.id);
+  const confirmed = order ?? (existing?.status === "paid" ? existing : null);
+  if (!confirmed) return null; // Not one of ours (the sandbox is shared), or not paid.
 
   const { error: soldError } = await admin()
     .from("listings")

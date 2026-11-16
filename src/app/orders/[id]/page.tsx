@@ -42,11 +42,12 @@ async function Receipt({ params }: { params: PageProps<"/orders/[id]">["params"]
   const listing = await getListing(order.listing_id);
 
   const paid = order.status === "paid";
+  const pending = order.status === "pending";
   const sellerGets = order.amount_total - order.application_fee;
 
   return (
     <article className={styles.receipt}>
-      {!paid && <RefreshWhilePending />}
+      {pending && <RefreshWhilePending />}
 
       <header className={styles.head}>
         {paid ? (
@@ -54,11 +55,13 @@ async function Receipt({ params }: { params: PageProps<"/orders/[id]">["params"]
         ) : (
           <ClockIcon className={styles.icon} aria-hidden="true" />
         )}
-        <h1 className="display">{paid ? "Order confirmed" : "Confirming payment"}</h1>
+        <h1 className="display">{paid ? "Order confirmed" : pending ? "Confirming payment" : "Checkout not completed"}</h1>
         <p>
           {paid
             ? "Thanks for your purchase. The seller has been paid and the listing is now marked Sold."
-            : "Stripe is confirming your payment. This page updates on its own; it usually takes a few seconds."}
+            : pending
+              ? "Stripe is confirming your payment. This page updates on its own; it usually takes a few seconds."
+              : "This checkout was closed before payment, so nothing was charged."}
         </p>
       </header>
 
@@ -83,7 +86,7 @@ async function Receipt({ params }: { params: PageProps<"/orders/[id]">["params"]
           </div>
           <div>
             <dt>Status</dt>
-            <dd>{paid ? "Paid" : "Processing"}</dd>
+            <dd>{paid ? "Paid" : pending ? "Processing" : "Not paid"}</dd>
           </div>
           {order.paid_at && (
             <div>

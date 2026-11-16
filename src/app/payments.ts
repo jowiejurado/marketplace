@@ -15,6 +15,11 @@ async function origin() {
 
 const NOT_SET_UP = "Online payments aren’t set up on this site yet.";
 
+/** How long Checkout stays open (Stripe allows 30 minutes at least). */
+const CHECKOUT_MINUTES = 31;
+/** An open checkout older than this has expired at Stripe, so it no longer holds the item. */
+const STALE_AFTER_MS = (CHECKOUT_MINUTES + 1) * 60_000;
+
 /** Finds the seller's connected account, or creates one the first time they connect. */
 async function sellerAccount(email: string): Promise<Seller> {
   const db = admin();
@@ -104,6 +109,41 @@ export async function buyNow(listingId: string): Promise<ActionResult<{ url: str
   const amount = toCents(listing.price);
   const fee = platformFee(amount);
   const base = await origin();
+  const db = admin();
+
+  // Checkouts that ran out of time no longer hold the item.
+  await db
+    .from("orders")
+    .update({ status: "expired" })
+    .eq("listing_id", listing.id)
+    .eq("status", "pending")
+    .lt("created_at", new Date(Date.now() - STALE_AFTER_MS).toISOString());
+
+  // Claim the item by saving the order first. The database allows one open checkout (or sale)
+  // per listing, so a second buyer is turned away here instead of paying for something already taken.
+  const { data: order, error: claimError } = await db
+    .from("orders")
+    .insert({
+      listing_id: listing.id,
+      seller_email: listing.seller_email.toLowerCase(),
+      stripe_account_id: seller!.stripe_account_id,
+      amount_total: amount,
+      application_fee: fee,
+      currency: "usd",
+    })
+    .select("id")
+    .single();
+
+  if (claimError) {
+    if (claimError.code === "23505") {
+      return {
+        ok: false,
+        error: "Someone is checking out this item right now. If that’s you, finish in Stripe; otherwise try again in about 30 minutes.",
+      };
+    }
+    console.error("buyNow claim", claimError);
+    return { ok: false, error: "Checkout didn’t open. Please try again." };
+  }
 
   try {
     const session = await stripe().checkout.sessions.create(
@@ -124,27 +164,29 @@ export async function buyNow(listingId: string): Promise<ActionResult<{ url: str
           },
         ],
         // Direct charge: the payment lives on the seller's account; the marketplace keeps the fee.
-        payment_intent_data: { application_fee_amount: fee, metadata: { listing_id: listing.id } },
-        metadata: { listing_id: listing.id },
+        payment_intent_data: {
+          application_fee_amount: fee,
+          metadata: { listing_id: listing.id, order_id: order.id },
+        },
+        // Links the payment back to our order even if saving the session id below fails.
+        client_reference_id: order.id,
+        metadata: { listing_id: listing.id, order_id: order.id },
+        // The item is held while Checkout is open; Stripe's minimum is 30 minutes.
+        expires_at: Math.floor(Date.now() / 1000) + CHECKOUT_MINUTES * 60,
         success_url: `${base}/orders/confirm?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${base}/listings/${listing.id}`,
+        cancel_url: `${base}/orders/cancel?order=${order.id}`,
       },
-      { stripeAccount: seller!.stripe_account_id },
+      // The order id doubles as the idempotency key, so a retried request can't open a second session.
+      { stripeAccount: seller!.stripe_account_id, idempotencyKey: `checkout-${order.id}` },
     );
 
-    const { error } = await admin().from("orders").insert({
-      listing_id: listing.id,
-      seller_email: listing.seller_email.toLowerCase(),
-      stripe_account_id: seller!.stripe_account_id,
-      stripe_session_id: session.id,
-      amount_total: amount,
-      application_fee: fee,
-      currency: "usd",
-    });
-    if (error) throw error;
+    const { error } = await db.from("orders").update({ stripe_session_id: session.id }).eq("id", order.id);
+    if (error) console.error("buyNow save session", error); // The webhook still finds it via client_reference_id.
 
     return { ok: true, data: { url: session.url! } };
   } catch (error) {
+    // Checkout never opened, so let the item go again.
+    await db.from("orders").update({ status: "canceled" }).eq("id", order.id);
     console.error("buyNow", error);
     return { ok: false, error: "Checkout didn’t open. Please try again." };
   }
