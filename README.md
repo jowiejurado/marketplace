@@ -83,7 +83,7 @@ There is no login, so the app uses Supabase's public anon key and Row Level Secu
 
 | Step | What happens |
 | --- | --- |
-| **Connect with Stripe** (`/sell/payouts`, or **Get paid** in the header) | The seller enters the email on their listings. The server creates a Stripe Express account, saves `email → stripe_account_id` in the `sellers` table, and sends them to Stripe's hosted onboarding. On return, `/sell/payouts/return` reads the account from Stripe and saves `charges_enabled`. |
+| **Connect with Stripe** (`/sell/payouts`, or **Get paid** in the header) | The seller enters the email on their listings. The server creates a connected account with Stripe's **Accounts v2** API (the seller gets their own Stripe dashboard; Stripe collects fees and covers losses, the standard setup for direct charges), saves `email → stripe_account_id` in the `sellers` table, and sends them to Stripe's hosted onboarding. On return, `/sell/payouts/return` reads the account from Stripe and saves `charges_enabled`. |
 | **Buy now** | Shown on listings whose seller has `charges_enabled`, that aren't sold and cost at least $0.50. It opens Stripe Checkout. |
 | **Pay the seller** | A **direct charge** on the seller's connected account (`stripeAccount`), with `application_fee_amount` = **10%** kept by the marketplace. |
 | **Confirm** | `/api/stripe/webhook` verifies the Stripe signature, then on `checkout.session.completed` marks the order **paid** and the listing **Sold**. The success redirect (`/orders/confirm`) checks the session too, so the buyer sees the result even if the webhook is a few seconds behind. Both paths are idempotent. `account.updated` keeps sellers' status current. |

@@ -1,9 +1,10 @@
 "use server";
 
+import { updateTag } from "next/cache";
 import { headers } from "next/headers";
 import { admin } from "@/lib/admin";
 import { getListing } from "@/lib/listings";
-import { canBuy, onboardingLink, type Seller } from "@/lib/payments";
+import { canBuy, onboardingLink, syncAccount, type Seller } from "@/lib/payments";
 import { isEmail } from "@/lib/shared";
 import { paymentsConfigured, platformFee, stripe, toCents } from "@/lib/stripe";
 import type { ActionResult } from "./actions";
@@ -29,22 +30,26 @@ async function sellerAccount(email: string): Promise<Seller> {
     .eq("email", email)
     .maybeSingle();
   if (error) throw error;
-  if (existing) return existing;
+  if (existing) {
+    // They may have finished onboarding since we last looked (the webhook can lag): check with Stripe.
+    if (!existing.charges_enabled) {
+      const synced = await syncAccount(await stripe().accounts.retrieve(existing.stripe_account_id));
+      if (synced?.charges_enabled) updateTag("sellers");
+      return synced ?? existing;
+    }
+    return existing;
+  }
 
-  // A Stripe-hosted (Express) account. Payments are direct charges on this account,
-  // with the marketplace taking an application fee.
-  const account = await stripe().accounts.create({
-    email,
-    country: "US",
-    business_type: "individual",
-    controller: {
-      stripe_dashboard: { type: "express" },
-      fees: { payer: "application" },
-      losses: { payments: "application" },
-      requirement_collection: "stripe",
-    },
-    capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
-    business_profile: { product_description: "Second-hand items sold on Marketplace" },
+  // Accounts v2 (Stripe's current API for new Connect platforms). The seller gets their own full
+  // Stripe dashboard and Stripe collects fees and covers losses, which is the standard setup for
+  // direct charges: payments are created on this account and the marketplace takes an application fee.
+  const account = await stripe().v2.core.accounts.create({
+    contact_email: email,
+    display_name: email.split("@")[0],
+    dashboard: "full",
+    identity: { country: "us" },
+    configuration: { merchant: { capabilities: { card_payments: { requested: true } } } },
+    defaults: { currency: "usd", responsibilities: { fees_collector: "stripe", losses_collector: "stripe" } },
     metadata: { marketplace_email: email },
   });
 
@@ -62,7 +67,9 @@ async function sellerAccount(email: string): Promise<Seller> {
       .eq("email", email)
       .maybeSingle();
     if (!winner) throw insertError;
-    await stripe().accounts.del(account.id).catch(() => {});
+    await stripe()
+      .v2.core.accounts.close(account.id, { applied_configurations: ["merchant"] })
+      .catch(() => {});
     return winner;
   }
   return created;

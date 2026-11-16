@@ -135,11 +135,15 @@ export function formatCents(cents: number, currency = "usd") {
 
 /** A one-time link to Stripe's hosted onboarding. Stripe sends the seller back to `return_url` when done. */
 export async function onboardingLink(accountId: string, base: string) {
-  const link = await stripe().accountLinks.create({
+  const link = await stripe().v2.core.accountLinks.create({
     account: accountId,
-    type: "account_onboarding",
-    refresh_url: `${base}/sell/payouts/refresh?account=${accountId}`,
-    return_url: `${base}/sell/payouts/return?account=${accountId}`,
+    use_case: {
+      type: "account_onboarding",
+      account_onboarding: {
+        refresh_url: `${base}/sell/payouts/refresh?account=${accountId}`,
+        return_url: `${base}/sell/payouts/return?account=${accountId}`,
+      },
+    },
   });
   return link.url;
 }
