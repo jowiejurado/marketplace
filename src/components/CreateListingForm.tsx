@@ -3,29 +3,22 @@
 import { ArrowPathIcon, CameraIcon, MapPinIcon, PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState, type DragEvent, type FormEvent } from "react";
-import { createListing, type FieldErrors } from "@/app/actions";
+import type { FieldErrors } from "@/app/actions";
 import { prepareImage } from "@/lib/image";
-import {
-  CATEGORIES,
-  DEFAULT_LOCATION,
-  formatPrice,
-  IMAGE_BUCKET,
-  isCategory,
-  isEmail,
-  LIMITS,
-  MAX_IMAGE_BYTES,
-} from "@/lib/shared";
-import { db } from "@/lib/supabase";
+import { CATEGORIES, DEFAULT_LOCATION, formatPrice, isCategory, isEmail, LIMITS, MAX_IMAGE_BYTES } from "@/lib/shared";
+import { useMarket } from "./MarketProvider";
 import styles from "./CreateListingForm.module.css";
 
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
 const SELLER_KEY = "marketplace-seller-email";
 
 type Photo = { file: File; preview: string };
-type Step = "idle" | "uploading" | "saving";
 
 export function CreateListingForm() {
   const router = useRouter();
+  const { publish } = useMarket();
+  // Once handed to the feed, the preview URL belongs to the pending card, so don't revoke it here.
+  const handedOff = useRef(false);
   const ids = useId();
   const fileRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -39,8 +32,7 @@ export function CreateListingForm() {
   const [email, setEmail] = useState("");
   const [dragging, setDragging] = useState(false);
   const [fields, setFields] = useState<FieldErrors>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [step, setStep] = useState<Step>("idle");
+  const [busy, setBusy] = useState(false);
 
   // Sellers usually list more than once; remember their email.
   useEffect(() => {
@@ -55,7 +47,9 @@ export function CreateListingForm() {
   useEffect(() => {
     if (!photo) return;
     const url = photo.preview;
-    return () => URL.revokeObjectURL(url);
+    return () => {
+      if (!handedOff.current) URL.revokeObjectURL(url);
+    };
   }, [photo]);
 
   async function pickPhoto(file: File | undefined) {
@@ -97,7 +91,6 @@ export function CreateListingForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setFormError(null);
 
     const errors = validate();
     setFields(errors);
@@ -109,38 +102,30 @@ export function CreateListingForm() {
       return;
     }
 
-    const form = new FormData(event.currentTarget);
-
     try {
-      setStep("uploading");
-      const ext = photo!.file.type.split("/")[1].replace("jpeg", "jpg");
-      const path = `${crypto.randomUUID()}.${ext}`;
-      const upload = await db().storage.from(IMAGE_BUCKET).upload(path, photo!.file, {
-        contentType: photo!.file.type,
-        cacheControl: "31536000",
-      });
-      if (upload.error) throw new Error("upload");
-      form.set("image_url", db().storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl);
-
-      setStep("saving");
-      const result = await createListing(form);
-      if (!result.ok) {
-        setFields(result.fields ?? {});
-        setFormError(result.error);
-        setStep("idle");
-        return;
-      }
-
-      try {
-        localStorage.setItem(SELLER_KEY, email.trim());
-      } catch {
-        // Not remembered.
-      }
-      router.push(`/listings/${result.data.id}?created=1`);
+      localStorage.setItem(SELLER_KEY, email.trim());
     } catch {
-      setFormError("The photo didn’t upload. Check your connection and try again.");
-      setStep("idle");
+      // Not remembered.
     }
+
+    // Optimistic: the listing appears at the top of the feed straight away and
+    // uploads in the background. If it fails, the card offers Try again.
+    handedOff.current = true;
+    setBusy(true);
+    publish({
+      form: new FormData(event.currentTarget),
+      photo: photo!.file,
+      preview: photo!.preview,
+      draft: {
+        title: title.trim(),
+        description: description.trim(),
+        price: Math.round(Number(price.replace(/[$,\s]/g, "")) * 100) / 100,
+        category: category as (typeof CATEGORIES)[number],
+        seller_email: email.trim().toLowerCase(),
+        location: location.trim(),
+      },
+    });
+    router.push("/", { transitionTypes: ["nav-back"] });
   }
 
   function handleDrop(event: DragEvent) {
@@ -149,7 +134,6 @@ export function CreateListingForm() {
     pickPhoto(event.dataTransfer.files[0]);
   }
 
-  const busy = step !== "idle";
   const priceNumber = Number(price.replace(/[$,\s]/g, ""));
   const previewPrice = price.trim() !== "" && Number.isFinite(priceNumber) ? formatPrice(priceNumber) : "Price";
 
@@ -360,16 +344,11 @@ export function CreateListingForm() {
           </label>
         </section>
 
-        {formError && (
-          <p className={styles.formError} role="alert">
-            {formError}
-          </p>
-        )}
-
         <div className={styles.submitBar}>
-          <button type="submit" className={styles.publish} disabled={busy}>
+          <p className={styles.submitNote}>Goes live straight away. No account needed.</p>
+          <button type="submit" className={`btn btn-primary ${styles.publish}`} disabled={busy}>
             {busy && <span className={styles.spinner} aria-hidden="true" />}
-            {step === "uploading" ? "Uploading photo…" : step === "saving" ? "Publishing…" : "Publish listing"}
+            {busy ? "Publishing…" : "Publish listing"}
           </button>
         </div>
       </form>

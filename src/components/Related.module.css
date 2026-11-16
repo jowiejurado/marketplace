@@ -1,0 +1,65 @@
+.related {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.related[data-variant="page"] {
+  margin-top: 56px;
+  padding-top: 32px;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.titlePage {
+  margin: 0;
+  font-size: 2.25rem;
+}
+
+.head a {
+  flex: none;
+  color: var(--ink-2);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.head a:hover {
+  color: var(--brand);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.related[data-variant="page"] .grid {
+  grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
+  gap: 36px 20px;
+}
+
+@media (max-width: 640px) {
+  .related[data-variant="page"] .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 12px;
+  }
+
+  .titlePage {
+    font-size: 1.875rem;
+  }
+}

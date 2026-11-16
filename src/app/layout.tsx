@@ -1,17 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Figtree } from "next/font/google";
+import { Archivo } from "next/font/google";
 import { Header } from "@/components/Header";
+import { MarketProvider } from "@/components/MarketProvider";
 import "./globals.css";
 
-const display = Bricolage_Grotesque({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
-});
-
-const body = Figtree({
+// One family. Its width axis gives the wide capitals used for headings (see .display in globals.css).
+const archivo = Archivo({
   variable: "--font-body",
   subsets: ["latin"],
+  axes: ["wdth"],
 });
 
 export const metadata: Metadata = {
@@ -26,15 +23,21 @@ export const viewport: Viewport = {
   themeColor: "#ffffff",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children, modal }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable}`}>
+    <html lang="en" className={archivo.variable}>
       <body>
-        <a href="#main" className="sr-only">
-          Skip to content
-        </a>
-        <Header />
-        {children}
+        <MarketProvider>
+          {/* The listing modal marks this wrapper inert while it's open. */}
+          <div id="page">
+            <a href="#main" className="sr-only">
+              Skip to content
+            </a>
+            <Header />
+            {children}
+          </div>
+          {modal}
+        </MarketProvider>
       </body>
     </html>
   );

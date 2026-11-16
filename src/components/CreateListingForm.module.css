@@ -31,8 +31,10 @@
 
 .cardTitle {
   margin: 0;
-  font-size: 1.125rem;
-  font-weight: 700;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 /* ---------- Photo ---------- */
@@ -60,13 +62,13 @@
 
 .dropzone:hover,
 .dropzone[data-dragging] {
-  border-color: var(--blue);
-  background: var(--blue-soft);
+  border-color: var(--brand);
+  background: var(--brand-soft);
 }
 
 .dropzone[aria-invalid] {
-  border-color: var(--coral);
-  background: #fff7f6;
+  border-color: var(--danger);
+  background: var(--danger-soft);
 }
 
 .dropIcon {
@@ -75,10 +77,10 @@
   width: 52px;
   height: 52px;
   margin-bottom: 6px;
-  border-radius: 50%;
+  border: 1px solid var(--ink);
   background: #fff;
-  color: var(--blue);
-  box-shadow: var(--shadow);
+  color: var(--ink);
+  box-shadow: none;
   transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -95,7 +97,7 @@
   position: relative;
   overflow: hidden;
   border-radius: var(--radius);
-  background: #11151f;
+  background: #191814;
   animation: pop 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -121,8 +123,8 @@
   height: 36px;
   padding: 0 12px;
   border: 0;
-  border-radius: 999px;
-  background: rgb(23 32 51 / 0.75);
+  border-radius: 0;
+  background: rgb(18 18 18 / 0.75);
   color: #fff;
   font-size: 0.875rem;
   font-weight: 600;
@@ -131,7 +133,7 @@
 }
 
 .photoActions button:hover:not(:disabled) {
-  background: rgb(23 32 51 / 0.92);
+  background: rgb(18 18 18 / 0.92);
 }
 
 .photoActions button:last-child {
@@ -192,7 +194,7 @@
 }
 
 .counter[data-low] {
-  color: var(--coral-ink);
+  color: var(--danger-ink);
   font-weight: 600;
 }
 
@@ -212,7 +214,7 @@
 .field select {
   appearance: none;
   padding-right: 40px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23636c81'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%2347433c'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   background-size: 16px;
@@ -228,13 +230,13 @@
 .field select:focus,
 .field textarea:focus {
   outline: none;
-  border-color: var(--blue);
-  box-shadow: 0 0 0 4px var(--blue-soft);
+  border-color: var(--brand);
+  box-shadow: none;
 }
 
 .field [aria-invalid] {
-  border-color: var(--coral);
-  background-color: #fffafa;
+  border-color: var(--danger);
+  background-color: var(--card);
 }
 
 .priceInput,
@@ -280,7 +282,7 @@
 
 .error {
   margin: 0;
-  color: var(--coral-ink);
+  color: var(--danger-ink);
   font-size: 0.8125rem;
   font-weight: 600;
 }
@@ -289,8 +291,8 @@
   margin: 0;
   padding: 10px 14px;
   border-radius: var(--radius-sm);
-  background: var(--coral-soft);
-  color: var(--coral-ink);
+  background: var(--danger-soft);
+  color: var(--danger-ink);
   font-weight: 600;
 }
 
@@ -298,35 +300,26 @@
 
 .submitBar {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 16px;
+}
+
+.submitNote {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
 }
 
 .publish {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
   min-width: 200px;
   min-height: 52px;
   padding: 0 28px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--blue);
-  color: #fff;
-  font-size: 1.0625rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 8px 18px -8px rgb(47 91 234 / 0.7);
-  transition: background-color 160ms ease, transform 160ms ease;
-}
-
-.publish:hover:not(:disabled) {
-  background: var(--blue-dark);
-  transform: translateY(-1px);
+  font-size: 1rem;
 }
 
 .publish:disabled {
-  opacity: 0.75;
+  opacity: 0.8;
   cursor: progress;
 }
 
@@ -357,7 +350,7 @@
   color: var(--muted);
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -394,7 +387,6 @@
 
 .previewPrice {
   margin: 0;
-  font-family: var(--font-display), sans-serif;
   font-size: 1.25rem;
   font-weight: 800;
 }
@@ -423,9 +415,9 @@
   display: inline-block;
   margin-top: 10px;
   padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--blue-soft);
-  color: var(--blue-dark);
+  border-radius: 0;
+  background: var(--brand-soft);
+  color: var(--brand-ink);
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -460,7 +452,7 @@
     bottom: 0;
     margin: 0 -12px;
     padding: 12px;
-    background: rgb(243 245 250 / 0.92);
+    background: rgb(255 255 255 / 0.92);
     backdrop-filter: blur(8px);
     border-top: 1px solid var(--line);
   }

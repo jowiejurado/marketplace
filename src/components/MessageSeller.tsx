@@ -1,22 +1,23 @@
 "use client";
 
-import { ChatBubbleLeftEllipsisIcon, CheckCircleIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { messageSeller, type FieldErrors } from "@/app/actions";
-import { LIMITS } from "@/lib/shared";
+import { isEmail, LIMITS } from "@/lib/shared";
 import styles from "./MessageSeller.module.css";
 
 const QUICK_REPLIES = ["Is this still available?", "Is the price negotiable?", "When can I pick it up?"];
 const BUYER_KEY = "marketplace-buyer";
 
-type Status = { kind: "idle" } | { kind: "sending" } | { kind: "sent"; emailed: boolean } | { kind: "error"; message: string };
+type Sent = { message: string; email: string; state: "sending" | "delivered"; emailed?: boolean };
 
 export function MessageSeller({ listingId, listingTitle }: { listingId: string; listingTitle: string }) {
   const [message, setMessage] = useState("Hi, is this still available?");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [fields, setFields] = useState<FieldErrors>({});
-  const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState<Sent | null>(null);
   const ids = useId();
 
   // Remember the buyer's name and email for the next listing they message.
@@ -30,60 +31,100 @@ export function MessageSeller({ listingId, listingTitle }: { listingId: string; 
     }
   }, []);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setStatus({ kind: "sending" });
-    setFields({});
-
-    const result = await messageSeller(new FormData(event.currentTarget));
-    if (!result.ok) {
-      setFields(result.fields ?? {});
-      setStatus({ kind: "error", message: result.error });
-      return;
-    }
-    try {
-      localStorage.setItem(BUYER_KEY, JSON.stringify({ name: name.trim(), email: email.trim() }));
-    } catch {
-      // Not remembered; the message still sent.
-    }
-    setStatus({ kind: "sent", emailed: result.data.emailed });
+  function validate(): FieldErrors {
+    const errors: FieldErrors = {};
+    if (!message.trim()) errors.message = "Write a message to the seller.";
+    if (!name.trim()) errors.name = "Add your name.";
+    if (!isEmail(email.trim())) errors.email = "Enter your email so the seller can reply.";
+    return errors;
   }
 
-  if (status.kind === "sent") {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const errors = validate();
+    setFields(errors);
+    setError(null);
+    if (Object.keys(errors).length > 0) return;
+
+    const form = new FormData(event.currentTarget);
+    // Optimistic: show the message as sent right away, and roll back if the server says no.
+    setSent({ message: message.trim(), email: email.trim(), state: "sending" });
+
+    try {
+      const result = await messageSeller(form);
+      if (!result.ok) {
+        setSent(null);
+        setFields(result.fields ?? {});
+        setError(result.error);
+        return;
+      }
+      setSent({ message: message.trim(), email: email.trim(), state: "delivered", emailed: result.data.emailed });
+      try {
+        localStorage.setItem(BUYER_KEY, JSON.stringify({ name: name.trim(), email: email.trim() }));
+      } catch {
+        // Not remembered; the message still sent.
+      }
+    } catch {
+      setSent(null);
+      setError("Your message didn’t send. Check your connection and try again.");
+    }
+  }
+
+  if (sent) {
     return (
-      <section className={`${styles.card} ${styles.sent}`} role="status">
-        <CheckCircleIcon className={styles.sentIcon} aria-hidden="true" />
-        <h2>Message sent!</h2>
-        <p>
-          {status.emailed
-            ? "We emailed the seller too. They’ll reply to "
-            : "The seller will get back to you at "}
-          <strong>{email}</strong>.
-        </p>
-        <button
-          type="button"
-          className={styles.secondary}
-          onClick={() => {
-            setMessage("");
-            setStatus({ kind: "idle" });
-          }}
-        >
-          Send another message
-        </button>
+      <section className={styles.card} aria-labelledby={`${ids}-heading`}>
+        <h3 id={`${ids}-heading`} className={styles.heading}>
+          {sent.state === "sending" ? "Sending your message…" : "Message sent"}
+        </h3>
+        <div className={styles.thread}>
+          <p className={styles.bubble} data-state={sent.state}>
+            {sent.message}
+          </p>
+          <p className={styles.receipt} role="status">
+            {sent.state === "sending" ? (
+              "Sending…"
+            ) : (
+              <>
+                <CheckIcon aria-hidden="true" />
+                Delivered{sent.emailed ? " · seller emailed" : ""}
+              </>
+            )}
+          </p>
+        </div>
+        {sent.state === "delivered" && (
+          <>
+            <p className={styles.note}>
+              The seller will reply to <strong>{sent.email}</strong>.
+            </p>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                setMessage("");
+                setSent(null);
+              }}
+            >
+              Send another message
+            </button>
+          </>
+        )}
       </section>
     );
   }
 
-  const sending = status.kind === "sending";
-  const error = (name: string) => fields[name] && <p className={styles.fieldError} id={`${ids}-${name}-error`}>{fields[name]}</p>;
-  const describedBy = (name: string) => (fields[name] ? `${ids}-${name}-error` : undefined);
+  const fieldError = (key: string) =>
+    fields[key] && (
+      <p className={styles.fieldError} id={`${ids}-${key}-error`}>
+        {fields[key]}
+      </p>
+    );
+  const describedBy = (key: string) => (fields[key] ? `${ids}-${key}-error` : undefined);
 
   return (
     <section className={styles.card} aria-labelledby={`${ids}-heading`}>
-      <h2 id={`${ids}-heading`} className={styles.heading}>
-        <ChatBubbleLeftEllipsisIcon aria-hidden="true" />
-        Send seller a message
-      </h2>
+      <h3 id={`${ids}-heading`} className={styles.heading}>
+        Send the seller a message
+      </h3>
 
       <form onSubmit={handleSubmit} className={styles.form} noValidate>
         <input type="hidden" name="listing_id" value={listingId} />
@@ -92,12 +133,7 @@ export function MessageSeller({ listingId, listingTitle }: { listingId: string; 
 
         <div className={styles.quick} role="group" aria-label="Quick messages">
           {QUICK_REPLIES.map((text) => (
-            <button
-              key={text}
-              type="button"
-              aria-pressed={message === text}
-              onClick={() => setMessage(text)}
-            >
+            <button key={text} type="button" aria-pressed={message === text} onClick={() => setMessage(text)}>
               {text}
             </button>
           ))}
@@ -115,7 +151,7 @@ export function MessageSeller({ listingId, listingTitle }: { listingId: string; 
             aria-describedby={describedBy("message")}
             required
           />
-          {error("message")}
+          {fieldError("message")}
         </label>
 
         <div className={styles.row}>
@@ -131,7 +167,7 @@ export function MessageSeller({ listingId, listingTitle }: { listingId: string; 
               aria-describedby={describedBy("name")}
               required
             />
-            {error("name")}
+            {fieldError("name")}
           </label>
           <label className={styles.field}>
             <span className={styles.label}>Your email</span>
@@ -146,19 +182,19 @@ export function MessageSeller({ listingId, listingTitle }: { listingId: string; 
               aria-describedby={describedBy("email")}
               required
             />
-            {error("email")}
+            {fieldError("email")}
           </label>
         </div>
 
-        {status.kind === "error" && !Object.keys(fields).length && (
+        {error && Object.keys(fields).length === 0 && (
           <p className={styles.formError} role="alert">
-            {status.message}
+            {error}
           </p>
         )}
 
-        <button type="submit" className={styles.send} disabled={sending}>
-          {sending ? <span className={styles.spinner} aria-hidden="true" /> : <PaperAirplaneIcon aria-hidden="true" />}
-          {sending ? "Sending…" : "Message seller"}
+        <button type="submit" className={`btn btn-primary ${styles.send}`}>
+          <PaperAirplaneIcon aria-hidden="true" />
+          Send message
         </button>
         <p className={styles.note}>Only the seller sees your message and email.</p>
       </form>

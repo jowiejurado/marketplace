@@ -91,6 +91,115 @@ export function timeAgo(iso: string, now = Date.now()) {
   return "just now";
 }
 
+// ---------- Feed filters ----------
+// Shared by the server query and the browser, so loaded listings can be filtered
+// and sorted instantly while the server fetches the full result.
+
+export const PAGE_SIZE = 12;
+
+export const SORTS = {
+  newest: "Newest first",
+  "price-asc": "Price: low to high",
+  "price-desc": "Price: high to low",
+} as const;
+export type Sort = keyof typeof SORTS;
+
+export const PRICES = {
+  any: "Any price",
+  free: "Free",
+  u50: "Under $50",
+  "50-200": "$50 to $200",
+  "200p": "Over $200",
+} as const;
+export type PriceRange = keyof typeof PRICES;
+
+export type View = "grid" | "list";
+
+export type Filters = {
+  category?: Category;
+  q: string;
+  sort: Sort;
+  price: PriceRange;
+  view: View;
+};
+
+export type ListingPage = { items: Listing[]; total: number };
+
+type ParamSource = URLSearchParams | Record<string, string | string[] | undefined>;
+
+export function parseFilters(source: ParamSource): Filters {
+  const get = (key: string) => {
+    const v = source instanceof URLSearchParams ? source.get(key) : source[key];
+    return (Array.isArray(v) ? v[0] : v) ?? "";
+  };
+  const sort = get("sort");
+  const price = get("price");
+  return {
+    category: categoryFromSlug(get("c")),
+    q: get("q").trim().slice(0, 80),
+    sort: sort in SORTS ? (sort as Sort) : "newest",
+    price: price in PRICES ? (price as PriceRange) : "any",
+    view: get("view") === "list" ? "list" : "grid",
+  };
+}
+
+export function filtersToSearch(filters: Filters) {
+  const params = new URLSearchParams();
+  if (filters.category) params.set("c", categorySlug(filters.category));
+  if (filters.q) params.set("q", filters.q);
+  if (filters.price !== "any") params.set("price", filters.price);
+  if (filters.sort !== "newest") params.set("sort", filters.sort);
+  if (filters.view === "list") params.set("view", "list");
+  return params.toString();
+}
+
+export function filtersHref(filters: Filters) {
+  const qs = filtersToSearch(filters);
+  return qs ? `/?${qs}` : "/";
+}
+
+/** Identifies a result set. View is left out: switching grid/list keeps what's loaded. */
+export function feedKey(filters: Filters) {
+  return filtersToSearch({ ...filters, view: "grid" }) || "all";
+}
+
+export function hasActiveFilters(filters: Filters) {
+  return Boolean(filters.category || filters.q || filters.price !== "any");
+}
+
+export function inPriceRange(price: number, range: PriceRange) {
+  switch (range) {
+    case "free":
+      return price === 0;
+    case "u50":
+      return price < 50;
+    case "50-200":
+      return price >= 50 && price <= 200;
+    case "200p":
+      return price > 200;
+    default:
+      return true;
+  }
+}
+
+/** Same rules as the database query in lib/listings.ts. */
+export function matchesFilters(listing: Listing, filters: Filters) {
+  if (filters.category && listing.category !== filters.category) return false;
+  if (!inPriceRange(listing.price, filters.price)) return false;
+  const q = filters.q.trim().toLowerCase();
+  if (!q) return true;
+  return [listing.title, listing.description, listing.location].some((field) => field.toLowerCase().includes(q));
+}
+
+export function sortListings(listings: Listing[], sort: Sort) {
+  const newest = (a: Listing, b: Listing) => b.created_at.localeCompare(a.created_at);
+  const sorted = [...listings];
+  if (sort === "price-asc") sorted.sort((a, b) => a.price - b.price || newest(a, b));
+  else if (sort === "price-desc") sorted.sort((a, b) => b.price - a.price || newest(a, b));
+  else sorted.sort(newest);
+  return sorted;
+}
+
 export function isEmail(value: string) {
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value) && value.length <= 254;
 }

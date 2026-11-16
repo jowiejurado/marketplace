@@ -1,6 +1,6 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
-import type { Category, Listing } from "./shared";
+import { PAGE_SIZE, type Category, type Filters, type Listing, type ListingPage } from "./shared";
 import { db } from "./supabase";
 
 const COLUMNS = "id, title, description, price, category, seller_email, location, image_url, created_at";
@@ -18,23 +18,36 @@ function normalise(row: Listing): Listing {
   return { ...row, price: Number(row.price) };
 }
 
-export async function getListings({ category, q }: { category?: Category; q?: string } = {}): Promise<Listing[]> {
+type ListingQuery = Pick<Filters, "category" | "q" | "sort" | "price"> & { offset?: number };
+
+/** One page of the feed, plus how many listings match in total. Same rules as matchesFilters() in shared.ts. */
+export async function getListings({ category, q, sort, price, offset = 0 }: ListingQuery): Promise<ListingPage> {
   "use cache";
   cacheTag("listings");
   cacheLife("minutes");
 
-  let query = db().from("listings").select(COLUMNS).order("created_at", { ascending: false }).limit(120);
+  let query = db().from("listings").select(COLUMNS, { count: "exact" });
 
   if (category) query = query.eq("category", category);
-  const term = q?.trim();
+
+  if (price === "free") query = query.eq("price", 0);
+  else if (price === "u50") query = query.lt("price", 50);
+  else if (price === "50-200") query = query.gte("price", 50).lte("price", 200);
+  else if (price === "200p") query = query.gt("price", 200);
+
+  const term = q.trim();
   if (term) {
     const pattern = `%${escapeSearch(term)}%`;
     query = query.or(`title.ilike.${pattern},description.ilike.${pattern},location.ilike.${pattern}`);
   }
 
-  const { data, error } = await query;
+  if (sort === "price-asc") query = query.order("price", { ascending: true });
+  if (sort === "price-desc") query = query.order("price", { ascending: false });
+  query = query.order("created_at", { ascending: false }).range(offset, offset + PAGE_SIZE - 1);
+
+  const { data, error, count } = await query;
   if (error) throw error;
-  return (data ?? []).map(normalise);
+  return { items: (data ?? []).map(normalise), total: count ?? data?.length ?? 0 };
 }
 
 export async function getListing(id: string): Promise<Listing | null> {

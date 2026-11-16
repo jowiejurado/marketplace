@@ -1,5 +1,13 @@
 .card {
   min-width: 0;
+  animation: card-in 480ms var(--ease-out) both;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 
 .link {
@@ -7,157 +15,376 @@
   height: 100%;
   color: inherit;
   text-decoration: none;
-  border-radius: var(--radius);
 }
 
+.mediaWrap {
+  position: relative;
+}
+
+/* Every photo sits in the same 4:5 frame on a stone well, so the grid never jumps while images load. */
 .media {
   position: relative;
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 5;
   overflow: hidden;
-  border-radius: var(--radius);
-  background: var(--line);
-  border: 1px solid var(--line);
+  background: linear-gradient(90deg, var(--well) 25%, #f8f7f5 50%, var(--well) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+.media[data-loaded] {
+  animation: none;
+  background: var(--well);
 }
 
 .image {
   object-fit: cover;
-  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0;
+  transition:
+    opacity 400ms ease,
+    transform 700ms var(--ease-out);
+}
+
+.media[data-loaded] .image {
+  opacity: 1;
+}
+
+.media img.image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .link:hover .image {
-  transform: scale(1.04);
+  transform: scale(1.025);
 }
 
 .noImage {
   position: absolute;
   inset: 0;
   margin: auto;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   color: var(--muted);
 }
 
-.freeTag {
+.badges {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--mint);
-  color: #053d2f;
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
+  top: 0;
+  left: 0;
+  display: flex;
+  pointer-events: none;
 }
+
+.badge {
+  padding: 5px 8px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.badge[data-tone="accent"] {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ---------- Text ---------- */
 
 .body {
-  padding: 10px 2px 0;
+  display: grid;
+  padding-top: 14px;
+  min-width: 0;
 }
 
-.price {
-  margin: 0;
-  font-family: var(--font-display), sans-serif;
-  font-size: 1.125rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+.category {
+  margin: 0 0 4px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .title {
   display: -webkit-box;
-  margin: 1px 0 0;
+  margin: 0;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  font-family: var(--font-body), sans-serif;
   font-size: 0.9375rem;
   font-weight: 500;
   line-height: 1.35;
-  letter-spacing: 0;
   overflow-wrap: anywhere;
+}
+
+.link:hover .title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
 }
 
 .meta {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin: 4px 0 0;
+  gap: 5px;
+  margin: 3px 0 0;
+  min-width: 0;
   color: var(--muted);
   font-size: 0.8125rem;
-}
-
-.meta svg {
-  flex: none;
-  width: 14px;
-  height: 14px;
-}
-
-.meta span {
-  overflow: hidden;
   white-space: nowrap;
+}
+
+.location {
+  overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* ---------- List layout ---------- */
-
-.card[data-layout="list"] .link {
-  display: flex;
-  gap: 16px;
-  padding: 12px;
-  background: var(--card);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow-sm);
-  transition: border-color 160ms ease, box-shadow 160ms ease;
-}
-
-.card[data-layout="list"] .link:hover {
-  border-color: var(--line-strong);
-  box-shadow: var(--shadow);
-}
-
-.card[data-layout="list"] .media {
-  flex: none;
-  width: 140px;
-  border-radius: var(--radius-sm);
-}
-
-.card[data-layout="list"] .body {
-  flex: 1;
-  min-width: 0;
-  padding: 2px 0;
-}
-
-.card[data-layout="list"] .title {
-  font-size: 1.0625rem;
+.price {
+  margin: 10px 0 0;
+  font-size: 0.9375rem;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .description {
   display: -webkit-box;
-  margin: 6px 0 0;
+  margin: 10px 0 0;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  max-width: 72ch;
   color: var(--ink-2);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
 }
 
-.when {
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 0.8125rem;
+/* ---------- Just published ---------- */
+
+.card[data-fresh] .media {
+  outline: 1px solid var(--ink);
+  outline-offset: 4px;
 }
 
-@media (max-width: 560px) {
-  .card[data-layout="list"] .media {
-    width: 104px;
+/* ---------- Pending (optimistic) ---------- */
+
+.card[data-pending] .image {
+  filter: grayscale(0.4);
+}
+
+.card[data-pending="publishing"] .media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(255 255 255 / 0.35);
+}
+
+.progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.6);
+}
+
+.progress::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: var(--ink);
+  animation: progress 1.1s var(--ease-out) infinite;
+}
+
+@keyframes progress {
+  from {
+    translate: -100% 0;
   }
+  to {
+    translate: 260% 0;
+  }
+}
 
+.failedActions {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+}
+
+.failedActions :global(.btn) {
+  min-height: 40px;
+  padding: 0 12px;
+}
+
+.failedActions :global(.btn-primary) {
+  flex: 1;
+}
+
+.failedActions :global(.btn-secondary) {
+  border-width: 0 0 0 1px;
+}
+
+.statusPublishing {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.statusLive {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ok-ink);
+  font-weight: 600;
+}
+
+.statusLive svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.4;
+}
+
+.statusFailed {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--danger-ink);
+  font-weight: 600;
+}
+
+/* ---------- Skeleton ---------- */
+
+.skelPrice,
+.skelTitle,
+.skelMeta {
+  display: block;
+  height: 12px;
+}
+
+.skelPrice {
+  width: 30%;
+  height: 9px;
+}
+
+.skelTitle {
+  width: 80%;
+  margin-top: 10px;
+}
+
+.skelMeta {
+  width: 45%;
+  margin-top: 10px;
+}
+
+/* ---------- List layout: a full-width row between hairlines ---------- */
+
+.card[data-layout="list"] {
+  border-bottom: 1px solid var(--line);
+}
+
+.card[data-layout="list"] .link {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  gap: 32px;
+  padding: 24px 0;
+}
+
+.card[data-layout="list"] .media {
+  aspect-ratio: 4 / 5;
+}
+
+.card[data-layout="list"] .body {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "category price"
+    "title price"
+    "meta price"
+    "desc desc";
+  align-content: start;
+  column-gap: 32px;
+  padding: 2px 0 0;
+}
+
+.card[data-layout="list"] .category {
+  grid-area: category;
+  margin-bottom: 8px;
+}
+
+.card[data-layout="list"] .title {
+  grid-area: title;
+  font-size: 1.25rem;
+  line-height: 1.3;
+  -webkit-line-clamp: 1;
+}
+
+.card[data-layout="list"] .meta {
+  grid-area: meta;
+  margin-top: 6px;
+  font-size: 0.875rem;
+}
+
+.card[data-layout="list"] .description {
+  grid-area: desc;
+  margin-top: 16px;
+}
+
+.card[data-layout="list"] .price {
+  grid-area: price;
+  margin: 0;
+  font-size: 1.25rem;
+  text-align: right;
+}
+
+@media (max-width: 640px) {
   .card[data-layout="list"] .link {
-    gap: 12px;
-    padding: 10px;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 16px;
+    padding: 16px 0;
   }
 
-  .description {
-    -webkit-line-clamp: 1;
+  .card[data-layout="list"] .body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "category"
+      "title"
+      "meta"
+      "price";
+  }
+
+  .card[data-layout="list"] .title {
+    font-size: 1rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .card[data-layout="list"] .price {
+    margin-top: 8px;
+    font-size: 1rem;
+    text-align: left;
+  }
+
+  .card[data-layout="list"] .description {
+    display: none;
+  }
+
+  .title {
+    font-size: 0.875rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .media,
+  .progress::after {
+    animation: none;
+  }
+
+  .link:hover .image {
+    transform: none;
   }
 }

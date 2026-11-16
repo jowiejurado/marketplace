@@ -3,9 +3,16 @@
 import { updateTag } from "next/cache";
 import { headers } from "next/headers";
 import { emailSeller } from "@/lib/email";
-import { getListing } from "@/lib/listings";
-import { isCategory, isEmail, LIMITS } from "@/lib/shared";
+import { getListing, getListings } from "@/lib/listings";
+import { isCategory, isEmail, LIMITS, parseFilters, type ListingPage } from "@/lib/shared";
 import { db } from "@/lib/supabase";
+
+/** The next page for infinite scrolling. `search` is the feed's query string. */
+export async function loadListings(search: string, offset: number): Promise<ListingPage> {
+  const start = Number.isInteger(offset) ? Math.min(Math.max(offset, 0), 5000) : 0;
+  const { category, q, sort, price } = parseFilters(new URLSearchParams(search.slice(0, 300)));
+  return getListings({ category, q, sort, price, offset: start });
+}
 
 export type FieldErrors = Partial<Record<string, string>>;
 export type ActionResult<T = undefined> =

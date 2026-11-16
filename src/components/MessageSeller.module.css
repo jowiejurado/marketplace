@@ -1,24 +1,15 @@
 .card {
-  padding: 20px;
-  background: var(--card);
+  padding: 24px;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  background: var(--card);
 }
 
 .heading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 14px;
-  font-size: 1.125rem;
-  font-weight: 700;
-}
-
-.heading svg {
-  width: 22px;
-  height: 22px;
-  color: var(--blue);
+  margin: 0 0 16px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .form {
@@ -41,26 +32,29 @@
 }
 
 .quick button {
-  padding: 6px 12px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--canvas);
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 0;
+  background: var(--card);
   color: var(--ink-2);
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease;
 }
 
 .quick button:hover {
-  border-color: var(--blue-ring);
-  background: var(--blue-soft);
+  border-color: var(--ink-2);
 }
 
 .quick button[aria-pressed="true"] {
-  border-color: var(--blue);
-  background: var(--blue-soft);
-  color: var(--blue-dark);
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand-ink);
 }
 
 .row {
@@ -71,6 +65,7 @@
 
 .field {
   display: grid;
+  align-content: start;
   gap: 4px;
   min-width: 0;
 }
@@ -88,9 +83,11 @@
   padding: 10px 12px;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
-  background: #fff;
+  background: var(--card);
   font-size: 0.9375rem;
-  transition: border-color 140ms ease, box-shadow 140ms ease;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .field textarea {
@@ -101,75 +98,31 @@
 .field input:focus,
 .field textarea:focus {
   outline: none;
-  border-color: var(--blue);
-  box-shadow: 0 0 0 4px var(--blue-soft);
+  border-color: var(--ink);
+  box-shadow: none;
 }
 
 .field [aria-invalid] {
-  border-color: var(--coral);
-  background: #fffafa;
+  border-color: var(--danger);
 }
 
 .fieldError,
 .formError {
   margin: 0;
-  color: var(--coral-ink);
+  color: var(--danger-ink);
   font-size: 0.8125rem;
   font-weight: 600;
 }
 
 .formError {
   padding: 8px 12px;
-  border-radius: 10px;
-  background: var(--coral-soft);
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
 }
 
 .send {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 46px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--blue);
-  color: #fff;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  box-shadow: 0 6px 14px -6px rgb(47 91 234 / 0.6);
-  transition: background-color 160ms ease, transform 160ms ease;
-}
-
-.send:hover:not(:disabled) {
-  background: var(--blue-dark);
-  transform: translateY(-1px);
-}
-
-.send:disabled {
-  opacity: 0.7;
-  cursor: progress;
-}
-
-.send svg {
-  width: 18px;
-  height: 18px;
-  stroke-width: 2;
-}
-
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgb(255 255 255 / 0.4);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 700ms linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  width: 100%;
+  min-height: 48px;
 }
 
 .note {
@@ -177,53 +130,62 @@
   color: var(--muted);
   font-size: 0.8125rem;
   text-align: center;
-}
-
-/* ---------- Sent ---------- */
-
-.sent {
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  text-align: center;
-  animation: pop 320ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.sent h2 {
-  margin: 0;
-  font-size: 1.25rem;
-}
-
-.sent p {
-  margin: 0 0 10px;
-  color: var(--ink-2);
   overflow-wrap: anywhere;
 }
 
-.sentIcon {
-  width: 44px;
-  height: 44px;
-  color: var(--mint);
+/* ---------- Sent: the message as a chat bubble ---------- */
+
+.thread {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  margin-bottom: 14px;
 }
 
-.secondary {
-  min-height: 40px;
-  padding: 0 16px;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
-  background: #fff;
+.bubble {
+  max-width: 85%;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 0;
+  background: var(--brand);
+  color: #fff;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  animation: bubble-in 320ms var(--ease-out);
+  transition: opacity 200ms ease;
+}
+
+.bubble[data-state="sending"] {
+  opacity: 0.65;
+}
+
+.receipt {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
   font-weight: 600;
-  cursor: pointer;
 }
 
-.secondary:hover {
-  background: var(--canvas);
+.receipt svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.4;
+  color: var(--ok);
 }
 
-@keyframes pop {
+.card > :global(.btn) {
+  width: 100%;
+  margin-top: 12px;
+}
+
+@keyframes bubble-in {
   from {
     opacity: 0;
-    transform: scale(0.97);
+    transform: translateY(10px) scale(0.96);
+    transform-origin: bottom right;
   }
 }
 
@@ -247,8 +209,8 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: 0;
   border-radius: 8px;
@@ -258,63 +220,13 @@
 }
 
 .email button:hover {
-  background: var(--canvas);
+  background: var(--canvas-2);
   color: var(--ink);
 }
 
 .email svg {
   width: 16px;
   height: 16px;
-}
-
-/* ---------- "Listing is live" banner ---------- */
-
-.banner {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding: 12px 12px 12px 16px;
-  border-radius: var(--radius-sm);
-  background: var(--mint-soft);
-  border: 1px solid #b4ead8;
-  color: var(--mint-ink);
-  animation: pop 320ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.banner > svg {
-  flex: none;
-  width: 24px;
-  height: 24px;
-}
-
-.banner p {
-  flex: 1;
-  margin: 0;
-  font-size: 0.9375rem;
-}
-
-.banner button {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-}
-
-.banner button:hover {
-  background: rgb(11 107 83 / 0.1);
-}
-
-.banner button svg {
-  width: 18px;
-  height: 18px;
 }
 
 @media (max-width: 480px) {
@@ -324,8 +236,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sent,
-  .banner {
+  .bubble {
     animation: none;
   }
 }
