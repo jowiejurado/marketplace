@@ -4,7 +4,7 @@ A Facebook-style Marketplace. List something in a minute with a photo, browse by
 
 Built with React, Next.js, Supabase (Postgres + Storage) and Stripe Connect. Deployed on Vercel.
 
-**Live:** _add your Vercel URL here_ · **Portfolio:** https://www.jowiejurado.dev
+**Live:** https://marketplace.jowiejurado.dev · **Portfolio:** https://www.jowiejurado.dev
 
 ## Features
 
