@@ -97,7 +97,7 @@
   position: relative;
   overflow: hidden;
   border-radius: var(--radius);
-  background: #191814;
+  background: var(--well);
   animation: pop 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -386,9 +386,10 @@
 }
 
 .previewPrice {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 800;
+  margin: 10px 0 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .previewTitle {
@@ -412,18 +413,166 @@
 }
 
 .previewChip {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 3px 10px;
-  border-radius: 0;
-  background: var(--brand-soft);
-  color: var(--brand-ink);
-  font-size: 0.75rem;
-  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .previewTip {
   margin: 10px 4px 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+/* ---------- Vehicle and home fields ---------- */
+
+.row3 {
+  display: grid;
+  grid-template-columns: 0.7fr 1fr 1fr;
+  gap: 14px;
+}
+
+.suffixInput {
+  position: relative;
+  display: block;
+}
+
+.suffixInput input {
+  padding-right: 64px;
+  font-variant-numeric: tabular-nums;
+}
+
+.suffixInput > span {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  translate: 0 -50%;
+  color: var(--muted);
+  font-size: 0.875rem;
+  pointer-events: none;
+}
+
+.field input:disabled {
+  background: var(--canvas-2);
+  color: var(--muted);
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--ink);
+}
+
+.segmented label {
+  position: relative;
+  cursor: pointer;
+}
+
+.segmented label + label {
+  border-left: 1px solid var(--ink);
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+}
+
+.segmented span {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.segmented input:checked + span {
+  background: var(--ink);
+  color: #fff;
+}
+
+.segmented label:has(input:focus-visible) {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ---------- Multiple listings ---------- */
+
+.bulkList {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.bulkRow {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.bulkThumb {
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--well);
+}
+
+.bulkThumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bulkFields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px;
+  gap: 10px;
+}
+
+.bulkFields > :first-child {
+  grid-column: 1 / -1;
+}
+
+.bulkRemove {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  background: var(--card);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.bulkRemove:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.bulkRemove svg {
+  width: 16px;
+  height: 16px;
+}
+
+.bulkAdd {
+  justify-self: start;
+}
+
+.bulkCount {
+  margin: 0;
   color: var(--muted);
   font-size: 0.8125rem;
 }
@@ -443,7 +592,21 @@
     padding: 18px;
   }
 
-  .row {
+  .row,
+  .row3 {
+    grid-template-columns: 1fr;
+  }
+
+  .bulkRow {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .bulkRemove {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .bulkFields {
     grid-template-columns: 1fr;
   }
 

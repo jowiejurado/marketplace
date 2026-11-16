@@ -1,15 +1,22 @@
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, ArrowRightIcon, HomeModernIcon, Square2StackIcon, TagIcon, TruckIcon } from "@heroicons/react/24/outline";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CreateListingForm } from "@/components/CreateListingForm";
 import { PageTransition } from "@/components/PageTransition";
+import { LISTING_TYPES, type ListingTypeKey } from "@/lib/listingTypes";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
   title: "Create a listing",
 };
 
-export default function CreatePage() {
+const ICONS: Record<ListingTypeKey, typeof TagIcon> = {
+  item: TagIcon,
+  multiple: Square2StackIcon,
+  vehicle: TruckIcon,
+  home: HomeModernIcon,
+};
+
+export default function ChooseListingType() {
   return (
     <PageTransition>
       <main id="main" className={styles.page}>
@@ -18,10 +25,27 @@ export default function CreatePage() {
           All listings
         </Link>
         <header className={styles.intro}>
-          <h1 className="display">Sell something</h1>
-          <p>Add a photo and a few details. Your listing goes live straight away, no account needed.</p>
+          <h1 className="display">Choose listing type</h1>
+          <p>What are you selling? Pick one to get the right form.</p>
         </header>
-        <CreateListingForm />
+
+        <ul className={styles.types}>
+          {(Object.keys(LISTING_TYPES) as ListingTypeKey[]).map((key) => {
+            const Icon = ICONS[key];
+            return (
+              <li key={key}>
+                <Link href={`/create/${key}`} className={styles.type} transitionTypes={["nav-forward"]}>
+                  <Icon className={styles.typeIcon} aria-hidden="true" />
+                  <span className={styles.typeTitle}>{LISTING_TYPES[key].title}</span>
+                  <span className={styles.typeBlurb}>{LISTING_TYPES[key].blurb}</span>
+                  <span className={styles.typeGo} aria-hidden="true">
+                    Start <ArrowRightIcon />
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </main>
     </PageTransition>
   );

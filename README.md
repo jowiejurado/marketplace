@@ -11,6 +11,7 @@ Built with React, Next.js and Supabase (Postgres + Storage). Deployed on Vercel.
 **Required**
 
 - **Create a listing:** photo, title, description, price, category, location and email, saved in Supabase
+- **Choose a listing type** first, as in the mockup: Item for sale, Multiple listings (up to 10 photos, one listing each, published together), Vehicle for sale (year, make, model and mileage build the title) and Home for sale or rent (sale/rent, type, bedrooms, bathrooms)
 - **Browse:** every listing on the home page, newest first, with category tabs to filter
 - **Listing page:** big photo, price, details, seller information and when it was listed
 - **Message Seller:** the buyer's name, email and message are saved in Supabase
