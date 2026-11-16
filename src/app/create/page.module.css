@@ -133,6 +133,40 @@
   outline-offset: 4px;
 }
 
+/* ---------- Coming soon: visible, but not a link ---------- */
+
+.type[data-soon] {
+  background: var(--canvas-2);
+  color: var(--muted);
+  cursor: default;
+}
+
+.type[data-soon]:hover {
+  background: var(--canvas-2);
+  color: var(--muted);
+}
+
+.type[data-soon]:hover .typeBlurb {
+  color: var(--muted);
+}
+
+.type[data-soon] .typeTitle {
+  color: var(--ink-2);
+}
+
+.soon {
+  justify-self: start;
+  margin-top: 24px;
+  padding: 5px 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--card);
+  color: var(--ink-2);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 @media (max-width: 900px) {
   .types {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -184,6 +218,11 @@
 
   .typeGo {
     display: none;
+  }
+
+  .soon {
+    grid-column: 2;
+    margin-top: 10px;
   }
 
   .typeBlurb {

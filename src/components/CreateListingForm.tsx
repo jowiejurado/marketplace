@@ -9,20 +9,12 @@ import { CATEGORIES, DEFAULT_LOCATION, formatPrice, isCategory, isEmail, LIMITS,
 import { useMarket } from "./MarketProvider";
 import styles from "./CreateListingForm.module.css";
 
-export const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
-export const SELLER_KEY = "marketplace-seller-email";
+const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
+const SELLER_KEY = "marketplace-seller-email";
 
 type Photo = { file: File; preview: string };
 
-/** The listing types on /create. Vehicles and homes ask the questions buyers care about and build the title for you. */
-export type ListingKind = "item" | "vehicle" | "home";
-
-const HOME_TYPES = ["Apartment", "House", "Townhouse", "Room"] as const;
-const THIS_YEAR = new Date().getFullYear();
-
-const num = (value: string) => Number(value.replace(/[$,\s]/g, ""));
-
-export function CreateListingForm({ kind = "item" }: { kind?: ListingKind }) {
+export function CreateListingForm() {
   const router = useRouter();
   const { publish } = useMarket();
   // Once handed to the feed, the preview URL belongs to the pending card, so don't revoke it here.
@@ -41,37 +33,6 @@ export function CreateListingForm({ kind = "item" }: { kind?: ListingKind }) {
   const [dragging, setDragging] = useState(false);
   const [fields, setFields] = useState<FieldErrors>({});
   const [busy, setBusy] = useState(false);
-
-  // Vehicle details
-  const [year, setYear] = useState("");
-  const [make, setMake] = useState("");
-  const [model, setModel] = useState("");
-  const [mileage, setMileage] = useState("");
-
-  // Home details
-  const [deal, setDeal] = useState<"sale" | "rent">("rent");
-  const [homeType, setHomeType] = useState<(typeof HOME_TYPES)[number]>("Apartment");
-  const [beds, setBeds] = useState("");
-  const [baths, setBaths] = useState("");
-
-  // What actually gets saved: vehicles and homes build their title, category and the first line of the description.
-  const finalTitle =
-    kind === "vehicle"
-      ? [year.trim(), make.trim(), model.trim()].filter(Boolean).join(" ")
-      : kind === "home"
-        ? homeType === "Room"
-          ? `Room for ${deal}`
-          : `${beds.trim() ? `${beds.trim()}-bed ` : ""}${homeType.toLowerCase()} for ${deal}`
-        : title.trim();
-  const finalCategory = kind === "vehicle" ? "Vehicles" : kind === "home" ? (deal === "rent" ? "Property Rentals" : "Home Sales") : category;
-  const facts =
-    kind === "vehicle"
-      ? mileage.trim() && `Mileage: ${num(mileage).toLocaleString("en-US")} miles`
-      : kind === "home"
-        ? [homeType, beds.trim() && `${beds.trim()} bed`, baths.trim() && `${baths.trim()} bath`].filter(Boolean).join(" · ")
-        : "";
-  const finalDescription = [facts, description.trim()].filter(Boolean).join("\n\n");
-  const priceLabel = kind === "home" && deal === "rent" ? "Rent per month" : "Price";
 
   // Sellers usually list more than once; remember their email.
   useEffect(() => {
@@ -118,22 +79,11 @@ export function CreateListingForm({ kind = "item" }: { kind?: ListingKind }) {
   /** Same rules as the server, so people see problems before uploading anything. */
   function validate(): FieldErrors {
     const errors: FieldErrors = {};
-    const p = num(price);
+    const p = Number(price.replace(/[$,\s]/g, ""));
     if (!photo) errors.photo = "Add a photo so buyers can see what you’re selling.";
-    if (kind === "item" && title.trim().length < LIMITS.title[0]) errors.title = "Give it a title of at least 3 characters.";
-    if (kind === "vehicle") {
-      const y = Number(year);
-      if (!/^\d{4}$/.test(year.trim()) || y < 1900 || y > THIS_YEAR + 1) errors.year = "Enter the year, e.g. 2016.";
-      if (!make.trim()) errors.make = "Add the make, e.g. Honda.";
-      if (!model.trim()) errors.model = "Add the model, e.g. Civic.";
-      if (mileage.trim() && (!Number.isFinite(num(mileage)) || num(mileage) < 0)) errors.mileage = "Enter miles as a number.";
-    }
-    if (kind === "home" && homeType !== "Room" && !/^\d{1,2}$/.test(beds.trim())) errors.beds = "How many bedrooms?";
-    if (kind === "home" && baths.trim() && !/^\d{1,2}(\.5)?$/.test(baths.trim())) errors.baths = "Enter a number, e.g. 1 or 1.5.";
-    if (finalTitle.length > LIMITS.title[1]) errors[kind === "item" ? "title" : "model"] = "That’s too long for a title.";
+    if (title.trim().length < LIMITS.title[0]) errors.title = "Give it a title of at least 3 characters.";
     if (price.trim() === "" || !Number.isFinite(p) || p < 0) errors.price = "Enter a price, or 0 if it’s free.";
-    if (!isCategory(finalCategory)) errors.category = "Pick a category.";
-    if (finalDescription.length > LIMITS.description) errors.description = "That description is too long.";
+    if (!isCategory(category)) errors.category = "Pick a category.";
     if (location.trim().length < 2) errors.location = "Add where the item is.";
     if (!isEmail(email.trim())) errors.email = "Enter an email buyers can reach you at.";
     return errors;
@@ -162,19 +112,15 @@ export function CreateListingForm({ kind = "item" }: { kind?: ListingKind }) {
     // uploads in the background. If it fails, the card offers Try again.
     handedOff.current = true;
     setBusy(true);
-    const form = new FormData(event.currentTarget);
-    form.set("title", finalTitle);
-    form.set("category", finalCategory);
-    form.set("description", finalDescription);
     publish({
-      form,
+      form: new FormData(event.currentTarget),
       photo: photo!.file,
       preview: photo!.preview,
       draft: {
-        title: finalTitle,
-        description: finalDescription,
-        price: Math.round(num(price) * 100) / 100,
-        category: finalCategory as (typeof CATEGORIES)[number],
+        title: title.trim(),
+        description: description.trim(),
+        price: Math.round(Number(price.replace(/[$,\s]/g, "")) * 100) / 100,
+        category: category as (typeof CATEGORIES)[number],
         seller_email: email.trim().toLowerCase(),
         location: location.trim(),
       },
@@ -266,162 +212,28 @@ export function CreateListingForm({ kind = "item" }: { kind?: ListingKind }) {
 
         {/* ---------- Details ---------- */}
         <section className={styles.card}>
-          <h2 className={styles.cardTitle}>
-            {kind === "vehicle" ? "Vehicle" : kind === "home" ? "Property" : "Details"}
-          </h2>
+          <h2 className={styles.cardTitle}>Details</h2>
 
-          {kind === "item" && (
+          <label className={styles.field}>
+            <span className={styles.label}>Title</span>
+            <input
+              name="title"
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                clearError("title");
+              }}
+              placeholder="e.g. Trek road bike, 54 cm"
+              maxLength={LIMITS.title[1]}
+              required
+              {...fieldProps("title")}
+            />
+            {errorFor("title")}
+          </label>
+
+          <div className={styles.row}>
             <label className={styles.field}>
-              <span className={styles.label}>Title</span>
-              <input
-                name="title"
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  clearError("title");
-                }}
-                placeholder="e.g. Trek road bike, 54 cm"
-                maxLength={LIMITS.title[1]}
-                required
-                {...fieldProps("title")}
-              />
-              {errorFor("title")}
-            </label>
-          )}
-
-          {kind === "vehicle" && (
-            <>
-              <div className={styles.row3}>
-                <label className={styles.field}>
-                  <span className={styles.label}>Year</span>
-                  <input
-                    value={year}
-                    onChange={(e) => {
-                      setYear(e.target.value);
-                      clearError("year");
-                    }}
-                    inputMode="numeric"
-                    maxLength={4}
-                    placeholder={String(THIS_YEAR - 8)}
-                    required
-                    {...fieldProps("year")}
-                  />
-                  {errorFor("year")}
-                </label>
-                <label className={styles.field}>
-                  <span className={styles.label}>Make</span>
-                  <input
-                    value={make}
-                    onChange={(e) => {
-                      setMake(e.target.value);
-                      clearError("make");
-                    }}
-                    maxLength={30}
-                    placeholder="Honda"
-                    required
-                    {...fieldProps("make")}
-                  />
-                  {errorFor("make")}
-                </label>
-                <label className={styles.field}>
-                  <span className={styles.label}>Model</span>
-                  <input
-                    value={model}
-                    onChange={(e) => {
-                      setModel(e.target.value);
-                      clearError("model");
-                    }}
-                    maxLength={40}
-                    placeholder="Civic EX"
-                    required
-                    {...fieldProps("model")}
-                  />
-                  {errorFor("model")}
-                </label>
-              </div>
-              <label className={styles.field}>
-                <span className={styles.label}>
-                  Mileage <span className={styles.optional}>(optional)</span>
-                </span>
-                <span className={styles.suffixInput}>
-                  <input
-                    value={mileage}
-                    onChange={(e) => {
-                      setMileage(e.target.value);
-                      clearError("mileage");
-                    }}
-                    inputMode="numeric"
-                    placeholder="68,000"
-                    {...fieldProps("mileage")}
-                  />
-                  <span aria-hidden="true">miles</span>
-                </span>
-                {errorFor("mileage")}
-              </label>
-            </>
-          )}
-
-          {kind === "home" && (
-            <>
-              <div className={styles.segmented} role="radiogroup" aria-label="Listing for">
-                {(["rent", "sale"] as const).map((option) => (
-                  <label key={option}>
-                    <input type="radio" name="deal" value={option} checked={deal === option} onChange={() => setDeal(option)} />
-                    <span>For {option}</span>
-                  </label>
-                ))}
-              </div>
-              <div className={styles.row3}>
-                <label className={styles.field}>
-                  <span className={styles.label}>Property type</span>
-                  <select value={homeType} onChange={(e) => setHomeType(e.target.value as (typeof HOME_TYPES)[number])}>
-                    {HOME_TYPES.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className={styles.field}>
-                  <span className={styles.label}>Bedrooms</span>
-                  <input
-                    value={beds}
-                    onChange={(e) => {
-                      setBeds(e.target.value);
-                      clearError("beds");
-                    }}
-                    inputMode="numeric"
-                    maxLength={2}
-                    placeholder={homeType === "Room" ? "1" : "2"}
-                    disabled={homeType === "Room"}
-                    {...fieldProps("beds")}
-                  />
-                  {errorFor("beds")}
-                </label>
-                <label className={styles.field}>
-                  <span className={styles.label}>
-                    Bathrooms <span className={styles.optional}>(optional)</span>
-                  </span>
-                  <input
-                    value={baths}
-                    onChange={(e) => {
-                      setBaths(e.target.value);
-                      clearError("baths");
-                    }}
-                    inputMode="decimal"
-                    maxLength={4}
-                    placeholder="1"
-                    {...fieldProps("baths")}
-                  />
-                  {errorFor("baths")}
-                </label>
-              </div>
-            </>
-          )}
-
-          <div className={kind === "item" ? styles.row : undefined}>
-            <label className={styles.field}>
-              <span className={styles.label}>{priceLabel}</span>
+              <span className={styles.label}>Price</span>
               <span className={styles.priceInput}>
                 <span aria-hidden="true">$</span>
                 <input
@@ -437,11 +249,10 @@ export function CreateListingForm({ kind = "item" }: { kind?: ListingKind }) {
                   {...fieldProps("price")}
                 />
               </span>
-              {errorFor("price") ||
-                (kind === "item" && <span className={styles.hint}>Enter 0 to give it away for free.</span>)}
+              {errorFor("price") || <span className={styles.hint}>Enter 0 to give it away for free.</span>}
             </label>
 
-            {kind === "item" && <label className={styles.field}>
+            <label className={styles.field}>
               <span className={styles.label}>Category</span>
               <select
                 name="category"
@@ -463,7 +274,7 @@ export function CreateListingForm({ kind = "item" }: { kind?: ListingKind }) {
                 ))}
               </select>
               {errorFor("category")}
-            </label>}
+            </label>
           </div>
 
           <label className={styles.field}>
@@ -501,13 +312,7 @@ export function CreateListingForm({ kind = "item" }: { kind?: ListingKind }) {
               onChange={(e) => setDescription(e.target.value)}
               rows={5}
               maxLength={LIMITS.description}
-              placeholder={
-                kind === "vehicle"
-                  ? "Condition, service history, owners, anything that needs fixing…"
-                  : kind === "home"
-                    ? "Neighbourhood, available from, pets, parking, what’s included…"
-                    : "Condition, size, what’s included, pickup times…"
-              }
+              placeholder="Condition, size, what’s included, pickup times…"
               {...fieldProps("description")}
             />
             {errorFor("description")}
@@ -561,13 +366,10 @@ export function CreateListingForm({ kind = "item" }: { kind?: ListingKind }) {
             )}
           </div>
           <div className={styles.previewBody}>
-            {finalCategory && <p className={styles.previewChip}>{finalCategory}</p>}
-            <p className={styles.previewTitle}>{finalTitle || "Your listing title"}</p>
+            {category && <p className={styles.previewChip}>{category}</p>}
+            <p className={styles.previewTitle}>{title.trim() || "Your listing title"}</p>
             <p className={styles.previewMeta}>{location.trim() || "Location"}</p>
-            <p className={styles.previewPrice}>
-              {previewPrice}
-              {kind === "home" && deal === "rent" && price.trim() !== "" && " / month"}
-            </p>
+            <p className={styles.previewPrice}>{previewPrice}</p>
           </div>
         </div>
         <p className={styles.previewTip}>This is how your listing will look in the Marketplace grid.</p>

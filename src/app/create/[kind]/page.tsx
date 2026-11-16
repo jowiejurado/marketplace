@@ -3,20 +3,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { BulkListingForm } from "@/components/BulkListingForm";
 import { CreateListingForm } from "@/components/CreateListingForm";
 import { PageTransition } from "@/components/PageTransition";
-import { isListingType, LISTING_TYPES } from "@/lib/listingTypes";
+import { isAvailableType, LISTING_TYPES } from "@/lib/listingTypes";
 import styles from "../page.module.css";
 
-// Unknown types (e.g. /create/boat) fall through to notFound() below.
+// Only types with a form get a page; coming-soon ones (and anything else) are a 404.
 export function generateStaticParams() {
-  return Object.keys(LISTING_TYPES).map((kind) => ({ kind }));
+  return Object.entries(LISTING_TYPES)
+    .filter(([, type]) => type.available)
+    .map(([kind]) => ({ kind }));
 }
 
 export async function generateMetadata({ params }: PageProps<"/create/[kind]">): Promise<Metadata> {
   const { kind } = await params;
-  return { title: isListingType(kind) ? `Sell: ${LISTING_TYPES[kind].title}` : "Create a listing" };
+  return { title: isAvailableType(kind) ? `Sell: ${LISTING_TYPES[kind].title}` : "Create a listing" };
 }
 
 export default function CreateListingPage({ params }: PageProps<"/create/[kind]">) {
@@ -27,7 +28,7 @@ export default function CreateListingPage({ params }: PageProps<"/create/[kind]"
           <ArrowLeftIcon aria-hidden="true" />
           Listing type
         </Link>
-        {/* The four types are prerendered, so this boundary only waits for an unknown type. */}
+        {/* Available types are prerendered, so this boundary only waits for an unknown one. */}
         <Suspense>
           <ListingTypeForm params={params} />
         </Suspense>
@@ -38,16 +39,16 @@ export default function CreateListingPage({ params }: PageProps<"/create/[kind]"
 
 async function ListingTypeForm({ params }: { params: PageProps<"/create/[kind]">["params"] }) {
   const { kind } = await params;
-  if (!isListingType(kind)) notFound();
+  if (!isAvailableType(kind)) notFound();
   const type = LISTING_TYPES[kind];
 
   return (
     <>
       <header className={styles.intro}>
-        <h1 className="display">{type.heading}</h1>
+        <h1 className="display">{type.title}</h1>
         <p>{type.intro}</p>
       </header>
-      {kind === "multiple" ? <BulkListingForm /> : <CreateListingForm kind={kind} />}
+      <CreateListingForm />
     </>
   );
 }

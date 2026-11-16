@@ -1,0 +1,126 @@
+.page {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 72px 32px 120px;
+}
+
+.panel {
+  position: relative;
+  padding: 56px 0 48px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* The number sits behind the heading as an outline, so it's there without shouting. */
+.code {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+  color: transparent;
+  font-size: clamp(7rem, 18vw, 15rem);
+  font-weight: 700;
+  font-stretch: 125%;
+  line-height: 0.8;
+  -webkit-text-stroke: 1px var(--line-strong);
+  user-select: none;
+  pointer-events: none;
+}
+
+.title {
+  position: relative;
+  margin: 0;
+  max-width: 14ch;
+  font-size: clamp(2.25rem, 6vw, 4.25rem);
+}
+
+.message {
+  position: relative;
+  margin: 20px 0 0;
+  max-width: 52ch;
+  color: var(--ink-2);
+  font-size: 1.0625rem;
+}
+
+.path {
+  position: relative;
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.path code {
+  padding: 2px 6px;
+  background: var(--canvas-2);
+  color: var(--ink);
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 0.8125rem;
+}
+
+.actions {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 32px;
+}
+
+.browse {
+  margin-top: 40px;
+}
+
+.browseTitle {
+  margin: 0 0 14px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.browse ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.browse a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.browse a:hover {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 32px 16px 72px;
+  }
+
+  .panel {
+    padding-top: 72px;
+  }
+
+  .code {
+    font-size: 6.5rem;
+  }
+
+  .actions :global(.btn) {
+    flex: 1 1 100%;
+  }
+}

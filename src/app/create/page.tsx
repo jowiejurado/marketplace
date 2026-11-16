@@ -32,12 +32,27 @@ export default function ChooseListingType() {
         <ul className={styles.types}>
           {(Object.keys(LISTING_TYPES) as ListingTypeKey[]).map((key) => {
             const Icon = ICONS[key];
+            const type = LISTING_TYPES[key];
+
+            if (!type.available) {
+              return (
+                <li key={key}>
+                  <div className={styles.type} data-soon aria-disabled="true">
+                    <Icon className={styles.typeIcon} aria-hidden="true" />
+                    <span className={styles.typeTitle}>{type.title}</span>
+                    <span className={styles.typeBlurb}>{type.blurb}</span>
+                    <span className={styles.soon}>Coming soon</span>
+                  </div>
+                </li>
+              );
+            }
+
             return (
               <li key={key}>
                 <Link href={`/create/${key}`} className={styles.type} transitionTypes={["nav-forward"]}>
                   <Icon className={styles.typeIcon} aria-hidden="true" />
-                  <span className={styles.typeTitle}>{LISTING_TYPES[key].title}</span>
-                  <span className={styles.typeBlurb}>{LISTING_TYPES[key].blurb}</span>
+                  <span className={styles.typeTitle}>{type.title}</span>
+                  <span className={styles.typeBlurb}>{type.blurb}</span>
                   <span className={styles.typeGo} aria-hidden="true">
                     Start <ArrowRightIcon />
                   </span>

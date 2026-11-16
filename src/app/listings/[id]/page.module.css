@@ -29,27 +29,8 @@
   stroke-width: 2.2;
 }
 
-.notFound {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  max-width: 520px;
-  margin: 72px auto;
-  padding: 48px 24px;
-  border: 1px dashed var(--line-strong);
-  border-radius: var(--radius);
-  text-align: center;
-}
 
-.notFound h1 {
-  margin: 0;
-  font-size: 2.5rem;
-}
 
-.notFound p {
-  margin: 0 0 14px;
-  color: var(--ink-2);
-}
 
 @media (max-width: 640px) {
   .page {
