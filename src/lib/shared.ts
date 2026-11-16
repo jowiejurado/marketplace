@@ -33,6 +33,8 @@ export type Listing = {
   location: string;
   image_url: string | null;
   created_at: string;
+  /** "sold" once a Stripe payment for it is confirmed. */
+  status: "available" | "sold";
 };
 
 export const LIMITS = {

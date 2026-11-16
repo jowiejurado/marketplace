@@ -35,7 +35,7 @@ export type PublishJob = {
   form: FormData;
   photo: File;
   preview: string;
-  draft: Omit<Listing, "id" | "created_at" | "image_url">;
+  draft: Omit<Listing, "id" | "created_at" | "image_url" | "status">;
 };
 
 export type PendingListing = {
@@ -191,7 +191,13 @@ export function MarketProvider({ children }: { children: ReactNode }) {
     (job: PublishJob) => {
       const tempId = `pending-${crypto.randomUUID()}`;
       jobs.current.set(tempId, job);
-      const listing: Listing = { ...job.draft, id: tempId, image_url: job.preview, created_at: new Date().toISOString() };
+      const listing: Listing = {
+        ...job.draft,
+        id: tempId,
+        image_url: job.preview,
+        created_at: new Date().toISOString(),
+        status: "available",
+      };
       setPending((all) => [{ tempId, listing, status: "publishing" }, ...all]);
       run(tempId);
     },

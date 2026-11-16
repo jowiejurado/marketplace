@@ -1,8 +1,8 @@
 # Marketplace
 
-A Facebook-style Marketplace. List something in a minute with a photo, browse by category or keyword, open any listing on its own page, and message the seller.
+A Facebook-style Marketplace. List something in a minute with a photo, browse by category or keyword, open any listing on its own page, message the seller, or buy it with Stripe.
 
-Built with React, Next.js and Supabase (Postgres + Storage). Deployed on Vercel.
+Built with React, Next.js, Supabase (Postgres + Storage) and Stripe Connect. Deployed on Vercel.
 
 **Live:** _add your Vercel URL here_ · **Portfolio:** https://www.jowiejurado.dev
 
@@ -79,6 +79,50 @@ There is no login, so the app uses Supabase's public anon key and Row Level Secu
   message is filled in by a database trigger from the listing, so it can't be spoofed.
 - Hidden honeypot fields stop simple spam bots, and email content is HTML-escaped.
 
+## Payments (Test 4: Stripe Connect)
+
+| Step | What happens |
+| --- | --- |
+| **Connect with Stripe** (`/sell/payouts`, or **Get paid** in the header) | The seller enters the email on their listings. The server creates a Stripe Express account, saves `email → stripe_account_id` in the `sellers` table, and sends them to Stripe's hosted onboarding. On return, `/sell/payouts/return` reads the account from Stripe and saves `charges_enabled`. |
+| **Buy now** | Shown on listings whose seller has `charges_enabled`, that aren't sold and cost at least $0.50. It opens Stripe Checkout. |
+| **Pay the seller** | A **direct charge** on the seller's connected account (`stripeAccount`), with `application_fee_amount` = **10%** kept by the marketplace. |
+| **Confirm** | `/api/stripe/webhook` verifies the Stripe signature, then on `checkout.session.completed` marks the order **paid** and the listing **Sold**. The success redirect (`/orders/confirm`) checks the session too, so the buyer sees the result even if the webhook is a few seconds behind. Both paths are idempotent. `account.updated` keeps sellers' status current. |
+
+The order page (`/orders/[id]`) shows the item, total and how it was split between seller and marketplace.
+
+**Where things live:** `src/app/payments.ts` (Connect with Stripe, Buy now), `src/lib/payments.ts` (sellers, orders,
+confirmation), `src/app/api/stripe/webhook/route.ts`, `src/app/sell/payouts/*`, `src/app/orders/*`,
+`supabase/setup.sql` section 5.
+
+**Security:**
+
+- `sellers` and `orders` have Row Level Security on and no public policies; only the server writes them, with the
+  Supabase **service-role** key. Visitors can't mark a listing sold, read orders or attach a Stripe account through the API.
+- The price, fee and seller account always come from the database on the server, never from the browser.
+- Webhook requests without a valid Stripe signature are rejected. Events for orders or accounts this app didn't
+  create (the sandbox is shared) are ignored with a 200.
+- As the brief allows, there is no login, so sellers are identified by email. That means anyone who knows a seller's
+  email could start onboarding for it before they do; with accounts, the seller would sign in first.
+
+### Payments set-up
+
+1. Run `supabase/setup.sql` again (it's safe to re-run; it adds `sellers`, `orders` and a `status` on listings).
+2. Add to `.env.local` and to Vercel:
+   - `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API → `service_role`; server-only)
+   - `STRIPE_SECRET_KEY` and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (the sandbox keys from the brief)
+3. Deploy, then register the webhook against the **production** URL and save the secret it prints as
+   `STRIPE_WEBHOOK_SECRET` (in `.env.local` and Vercel), then redeploy:
+
+   ```bash
+   node --env-file=.env.local scripts/create-webhook.mjs https://your-app.vercel.app
+   ```
+
+   Testing locally instead? `stripe listen --api-key $STRIPE_SECRET_KEY --forward-connect-to localhost:3000/api/stripe/webhook`
+   prints a temporary secret to use while it runs.
+4. Click **Get paid**, connect with the email on a listing and finish onboarding with
+   [Stripe's test data](https://docs.stripe.com/connect/testing). That listing now shows **Buy now**.
+5. Buy it with card `4242 4242 4242 4242`, any future date, any CVC and ZIP.
+
 ## Set up
 
 1. Create a free project at [supabase.com](https://supabase.com) (the Wall's project works too).
@@ -96,4 +140,5 @@ Open http://localhost:3000.
 ## Deploy on Vercel
 
 Import the repo, add the same environment variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-and optionally `RESEND_API_KEY` and `EMAIL_FROM`), and click **Deploy**.
+optionally `RESEND_API_KEY` and `EMAIL_FROM`, and the payment keys above), and click **Deploy**. Without the payment
+keys the site still works; Buy now is simply hidden.

@@ -10,7 +10,7 @@ import { useMarket } from "./MarketProvider";
 import styles from "./CreateListingForm.module.css";
 
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
-const SELLER_KEY = "marketplace-seller-email";
+export const SELLER_KEY = "marketplace-seller-email";
 
 type Photo = { file: File; preview: string };
 

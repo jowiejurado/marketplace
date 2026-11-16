@@ -137,8 +137,29 @@
 /* ---------- Sell ---------- */
 
 .sell {
-  justify-self: end;
   min-height: 44px;
+}
+
+.end {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: 22px;
+}
+
+.payouts {
+  color: var(--ink);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.payouts:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 @media (max-width: 960px) {
@@ -146,6 +167,13 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 16px;
     padding: 0 16px;
+  }
+}
+
+@media (max-width: 760px) {
+  /* Phones: room goes to search; "Get paid" lives on the create page instead. */
+  .payouts {
+    display: none;
   }
 }
 

@@ -14,6 +14,8 @@ type Props = {
   listing: Promise<Listing | null>;
   /** "More in this category", streamed in from the server. */
   children: ReactNode;
+  /** Buy Now or Sold, streamed in from the server. */
+  purchase?: ReactNode;
 };
 
 /**
@@ -28,7 +30,7 @@ export function ListingModal(props: Props) {
   return <ModalSheet key="sheet" id={params.id} {...props} />;
 }
 
-function ModalSheet({ id, listing, children }: Props & { id: string }) {
+function ModalSheet({ id, listing, children, purchase }: Props & { id: string }) {
   const router = useRouter();
   const sheet = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -83,7 +85,7 @@ function ModalSheet({ id, listing, children }: Props & { id: string }) {
           </div>
 
           <Suspense fallback={<ListingViewSkeleton variant="modal" />}>
-            <ModalBody key={id} id={id} listing={listing} titleId={titleId}>
+            <ModalBody key={id} id={id} listing={listing} titleId={titleId} purchase={purchase}>
               {children}
             </ModalBody>
           </Suspense>
@@ -93,7 +95,7 @@ function ModalSheet({ id, listing, children }: Props & { id: string }) {
   );
 }
 
-function ModalBody({ id, listing, titleId, children }: { id: string; titleId: string } & Props) {
+function ModalBody({ id, listing, titleId, children, purchase }: { id: string; titleId: string } & Props) {
   // Seen in the feed: open instantly (and let the photo morph). Otherwise wait for the server.
   const data = seenListings.get(id) ?? use(listing);
 
@@ -111,5 +113,5 @@ function ModalBody({ id, listing, titleId, children }: { id: string; titleId: st
     );
   }
 
-  return <ListingView listing={data} variant="modal" titleId={titleId} related={children} />;
+  return <ListingView listing={data} variant="modal" titleId={titleId} related={children} purchase={purchase} />;
 }

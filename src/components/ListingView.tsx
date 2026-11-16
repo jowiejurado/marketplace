@@ -27,10 +27,12 @@ type Props = {
   variant: "modal" | "page";
   titleId?: string;
   related?: ReactNode;
+  /** Buy Now, or a Sold notice, streamed in from the server (see Purchase.tsx). */
+  purchase?: ReactNode;
 };
 
-/** The listing split view: photo on one side, details and Message Seller on the other. */
-export function ListingView({ listing, variant, titleId, related }: Props) {
+/** The listing split view: photo on one side, details, Buy Now and Message Seller on the other. */
+export function ListingView({ listing, variant, titleId, related, purchase }: Props) {
   const [sharp, setSharp] = useState(false);
   const sellerName = listing.seller_email.split("@")[0];
   const Title = variant === "page" ? "h1" : "h2";
@@ -79,7 +81,11 @@ export function ListingView({ listing, variant, titleId, related }: Props) {
           </Title>
           <p className={styles.price}>
             {formatPrice(listing.price)}
-            {listing.price === 0 && <span className={styles.freeNote}>Just come and get it</span>}
+            {listing.status === "sold" ? (
+              <span className={styles.soldNote}>Sold</span>
+            ) : (
+              listing.price === 0 && <span className={styles.freeNote}>Just come and get it</span>
+            )}
           </p>
 
           <ul className={styles.facts}>
@@ -95,8 +101,10 @@ export function ListingView({ listing, variant, titleId, related }: Props) {
             </li>
           </ul>
 
+          {purchase}
+
           <div className={styles.actions}>
-            <a href={`#message-${listing.id}`} className="btn btn-primary" onClick={focusMessage}>
+            <a href={`#message-${listing.id}`} className={`btn btn-primary ${styles.messageButton}`} onClick={focusMessage}>
               <ChatBubbleLeftEllipsisIcon aria-hidden="true" />
               Message seller
             </a>

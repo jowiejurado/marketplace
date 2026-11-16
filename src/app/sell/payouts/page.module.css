@@ -1,0 +1,182 @@
+.page {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 28px 32px 120px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+.back svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+}
+
+.intro {
+  margin: 28px 0 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.intro h1 {
+  margin: 0;
+  font-size: clamp(1.875rem, 4vw, 2.75rem);
+}
+
+.intro p {
+  margin: 12px 0 0;
+  max-width: 64ch;
+  color: var(--ink-2);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.card {
+  display: grid;
+  gap: 20px;
+  padding: 28px;
+  border: 1px solid var(--ink);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.notice {
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--canvas-2);
+  color: var(--ink-2);
+  font-size: 0.875rem;
+}
+
+.small {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.small a {
+  color: var(--ink-2);
+}
+
+.steps {
+  display: grid;
+  gap: 20px;
+  padding: 28px 0;
+}
+
+.steps ol {
+  display: grid;
+  gap: 18px;
+  margin: 0;
+  padding: 0 0 0 20px;
+  color: var(--ink-2);
+}
+
+.steps li::marker {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.steps strong {
+  color: var(--ink);
+}
+
+/* ---------- Status after onboarding ---------- */
+
+.banner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding: 18px 20px;
+  border: 1px solid;
+}
+
+.banner[data-tone="ok"] {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+}
+
+.banner[data-tone="warn"] {
+  border-color: #c9a227;
+  background: #fbf5e1;
+}
+
+.banner > svg {
+  width: 24px;
+  height: 24px;
+}
+
+.banner[data-tone="ok"] > svg {
+  color: var(--ok);
+}
+
+.banner[data-tone="warn"] > svg {
+  color: #8a6a00;
+}
+
+.banner p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.875rem;
+}
+
+.banner .bannerTitle {
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .steps {
+    padding: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 16px 16px 64px;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .banner {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .banner :global(.btn) {
+    grid-column: 1 / -1;
+  }
+}

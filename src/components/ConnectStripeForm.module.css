@@ -1,0 +1,105 @@
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.field input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 0;
+  background: var(--card);
+  font-size: 1rem;
+  transition: border-color 140ms ease;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+
+.field input[aria-invalid] {
+  border-color: var(--danger);
+}
+
+.error,
+.formError {
+  margin: 0;
+  color: var(--danger-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.formError {
+  padding: 10px 14px;
+  background: var(--danger-soft);
+}
+
+.submit {
+  min-height: 52px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgb(255 255 255 / 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ready {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--ok);
+  background: var(--ok-soft);
+  color: var(--ok-ink);
+}
+
+.ready svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  stroke-width: 2.2;
+}
+
+.ready p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
+}

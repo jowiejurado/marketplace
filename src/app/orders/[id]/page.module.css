@@ -1,0 +1,160 @@
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 56px 32px 120px;
+}
+
+.skeleton {
+  height: 480px;
+}
+
+.receipt {
+  display: grid;
+  gap: 32px;
+}
+
+.head {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  stroke-width: 1.4;
+  color: var(--ink-2);
+}
+
+.icon[data-tone="ok"] {
+  color: var(--ok);
+}
+
+.head h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3rem);
+}
+
+.head p {
+  margin: 0;
+  max-width: 54ch;
+  color: var(--ink-2);
+}
+
+.body {
+  border: 1px solid var(--ink);
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 20px;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.thumb {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--well);
+}
+
+.thumbImg {
+  object-fit: cover;
+}
+
+.category {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.itemTitle {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.muted {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.lines {
+  margin: 0;
+  padding: 8px 20px;
+}
+
+.lines div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.lines dt {
+  color: var(--muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1.9;
+  text-transform: uppercase;
+}
+
+.lines dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.mono {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+
+.lines .total {
+  border-bottom: 0;
+}
+
+.total dt {
+  color: var(--ink);
+}
+
+.total dd {
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.split {
+  margin: 0;
+  padding: 14px 20px;
+  background: var(--canvas-2);
+  color: var(--ink-2);
+  font-size: 0.8125rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 32px 16px 72px;
+  }
+
+  .actions :global(.btn) {
+    flex: 1 1 100%;
+  }
+}

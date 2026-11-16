@@ -388,3 +388,21 @@
     transform: none;
   }
 }
+
+/* ---------- Sold ---------- */
+
+.badge[data-tone="sold"] {
+  background: var(--ink);
+  color: #fff;
+}
+
+.card[data-sold] .image {
+  filter: grayscale(0.85);
+  opacity: 0.75;
+}
+
+.card[data-sold] .price {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}

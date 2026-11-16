@@ -101,3 +101,47 @@ on conflict (id) do update
 drop policy if exists "Anyone can upload listing images" on storage.objects;
 create policy "Anyone can upload listing images" on storage.objects
   for insert to anon, authenticated with check (bucket_id = 'listing-images');
+
+-- 5. Payments (Stripe Connect) -------------------------------------------------
+-- Sellers connect a Stripe account by email; buyers pay through Stripe Checkout.
+-- Only the server writes these, using the service-role key (SUPABASE_SERVICE_ROLE_KEY),
+-- so visitors can't mark a listing sold or attach their own Stripe account through the API.
+
+alter table public.listings add column if not exists status text not null default 'available';
+alter table public.listings add column if not exists sold_at timestamptz;
+alter table public.listings drop constraint if exists listings_status_check;
+alter table public.listings add constraint listings_status_check check (status in ('available', 'sold'));
+-- status and sold_at aren't in the anon insert grant above, so a new listing is always available.
+
+create table if not exists public.sellers (
+  email              text primary key check (email = lower(email) and email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
+  stripe_account_id  text not null unique,
+  charges_enabled    boolean not null default false,
+  details_submitted  boolean not null default false,
+  created_at         timestamptz not null default now(),
+  updated_at         timestamptz not null default now()
+);
+
+create table if not exists public.orders (
+  id                  uuid primary key default gen_random_uuid(),
+  listing_id          uuid not null references public.listings (id) on delete restrict,
+  seller_email        text not null,
+  stripe_account_id   text not null,
+  stripe_session_id   text not null unique,
+  amount_total        integer not null check (amount_total > 0),       -- cents
+  application_fee     integer not null check (application_fee >= 0),   -- cents
+  currency            text not null default 'usd',
+  buyer_email         text,
+  status              text not null default 'pending' check (status in ('pending', 'paid')),
+  created_at          timestamptz not null default now(),
+  paid_at             timestamptz
+);
+
+create index if not exists orders_listing_id_idx on public.orders (listing_id);
+
+-- RLS on with no policies: the anon key can't read or write either table.
+-- The service role bypasses RLS, so only the server can use them.
+alter table public.sellers enable row level security;
+alter table public.orders enable row level security;
+revoke all on public.sellers from anon, authenticated;
+revoke all on public.orders from anon, authenticated;

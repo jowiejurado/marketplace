@@ -324,3 +324,31 @@
     padding: 20px 18px 32px;
   }
 }
+
+/* ---------- Buying ---------- */
+
+/* When Buy Now is there it's the main action, so Message seller steps back to an outline. */
+.panel:has([data-buy-now]) .messageButton {
+  border-color: var(--ink);
+  background: var(--card);
+  color: var(--ink);
+}
+
+.panel:has([data-buy-now]) .messageButton:hover {
+  background: var(--ink);
+  color: #fff;
+}
+
+.panel:has([data-buy-now]) .actions {
+  margin-top: 10px;
+}
+
+.soldNote {
+  padding: 4px 8px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}

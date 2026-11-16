@@ -16,10 +16,15 @@ export function Header() {
           <SearchBox />
         </Suspense>
 
-        <Link href="/create" className={`btn btn-primary ${styles.sell}`} transitionTypes={["nav-forward"]}>
-          <PlusIcon aria-hidden="true" />
-          <span>Sell an item</span>
-        </Link>
+        <div className={styles.end}>
+          <Link href="/sell/payouts" className={styles.payouts} transitionTypes={["nav-forward"]}>
+            Get paid
+          </Link>
+          <Link href="/create" className={`btn btn-primary ${styles.sell}`} transitionTypes={["nav-forward"]}>
+            <PlusIcon aria-hidden="true" />
+            <span>Sell an item</span>
+          </Link>
+        </div>
       </div>
     </header>
   );

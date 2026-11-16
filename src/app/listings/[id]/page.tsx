@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Suspense, ViewTransition } from "react";
 import { ListingView, ListingViewSkeleton } from "@/components/ListingView";
 import { PageTransition } from "@/components/PageTransition";
+import { Purchase } from "@/components/Purchase";
 import { Related } from "@/components/Related";
 import { getListing } from "@/lib/listings";
 import { formatPrice } from "@/lib/shared";
@@ -55,6 +56,11 @@ async function ListingDetail({ params }: { params: PageProps<"/listings/[id]">["
         <ListingView
           listing={listing}
           variant="page"
+          purchase={
+            <Suspense>
+              <Purchase listing={listing} />
+            </Suspense>
+          }
           related={
             <Suspense>
               <Related listing={listing} variant="page" />

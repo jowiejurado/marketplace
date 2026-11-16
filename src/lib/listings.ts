@@ -3,7 +3,8 @@ import { cacheLife, cacheTag } from "next/cache";
 import { PAGE_SIZE, type Category, type Filters, type Listing, type ListingPage } from "./shared";
 import { db } from "./supabase";
 
-const COLUMNS = "id, title, description, price, category, seller_email, location, image_url, created_at";
+// "*" rather than a column list so the app keeps working before setup.sql adds the payment columns.
+const COLUMNS = "*";
 
 // Reads are cached and tagged "listings". Creating a listing calls updateTag("listings")
 // so the new item shows up straight away (see app/actions.ts).
@@ -15,7 +16,7 @@ function escapeSearch(term: string) {
 
 // numeric comes back from PostgREST as a string or number depending on size.
 function normalise(row: Listing): Listing {
-  return { ...row, price: Number(row.price) };
+  return { ...row, price: Number(row.price), status: row.status === "sold" ? "sold" : "available" };
 }
 
 type ListingQuery = Pick<Filters, "category" | "q" | "sort" | "price"> & { offset?: number };

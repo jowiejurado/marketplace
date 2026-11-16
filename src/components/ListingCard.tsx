@@ -49,7 +49,12 @@ export function ListingCard({ listing, layout = "grid", eager = false, morph = f
   );
 
   return (
-    <li className={styles.card} data-layout={layout} data-fresh={fresh || undefined}>
+    <li
+      className={styles.card}
+      data-layout={layout}
+      data-fresh={fresh || undefined}
+      data-sold={listing.status === "sold" || undefined}
+    >
       <Link
         href={`/listings/${listing.id}`}
         replace={replace}
@@ -65,7 +70,7 @@ export function ListingCard({ listing, layout = "grid", eager = false, morph = f
           ) : (
             photo
           )}
-          <Badges price={listing.price} isNew={isNew} fresh={fresh} />
+          <Badges price={listing.price} isNew={isNew} fresh={fresh} sold={listing.status === "sold"} />
         </div>
         <CardBody listing={listing} layout={layout} />
       </Link>
@@ -73,7 +78,16 @@ export function ListingCard({ listing, layout = "grid", eager = false, morph = f
   );
 }
 
-function Badges({ price, isNew, fresh }: { price: number; isNew: boolean; fresh?: boolean }) {
+function Badges({ price, isNew, fresh, sold }: { price: number; isNew: boolean; fresh?: boolean; sold?: boolean }) {
+  if (sold) {
+    return (
+      <span className={styles.badges}>
+        <span className={styles.badge} data-tone="sold">
+          Sold
+        </span>
+      </span>
+    );
+  }
   if (!fresh && !isNew && price !== 0) return null;
   return (
     <span className={styles.badges}>

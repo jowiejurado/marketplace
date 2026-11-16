@@ -1,0 +1,83 @@
+.buy {
+  display: grid;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.buyButton {
+  width: 100%;
+  min-height: 54px;
+  font-size: 0.8125rem;
+}
+
+.note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.error {
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--danger-soft);
+  color: var(--danger-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgb(255 255 255 / 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.sold {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 28px;
+  padding: 16px;
+  border: 1px solid var(--ink);
+}
+
+.sold p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.875rem;
+}
+
+.soldTag {
+  flex: none;
+  padding: 5px 9px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.nudge {
+  margin: 20px 0 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.nudge a {
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
+}

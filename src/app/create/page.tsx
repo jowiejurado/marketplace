@@ -26,7 +26,10 @@ export default function ChooseListingType() {
         </Link>
         <header className={styles.intro}>
           <h1 className="display">Choose listing type</h1>
-          <p>What are you selling? Pick one to get the right form.</p>
+          <p>
+            What are you selling? Pick one to get the right form. Want buyers to pay by card?{" "}
+            <Link href="/sell/payouts">Connect Stripe</Link> and your listings get a Buy Now button.
+          </p>
         </header>
 
         <ul className={styles.types}>

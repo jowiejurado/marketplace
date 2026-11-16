@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { ListingModal } from "@/components/ListingModal";
+import { PurchaseById } from "@/components/Purchase";
 import { RelatedById, RelatedSkeleton } from "@/components/Related";
 import { getListing } from "@/lib/listings";
 
@@ -10,7 +11,14 @@ export default function ListingModalPage({ params }: { params: Promise<{ id: str
   return (
     // The modal reads the id from the URL, which is request data, so it sits in its own boundary.
     <Suspense>
-      <ListingModal listing={listing}>
+      <ListingModal
+        listing={listing}
+        purchase={
+          <Suspense>
+            <PurchaseById params={params} />
+          </Suspense>
+        }
+      >
         <Suspense fallback={<RelatedSkeleton />}>
           <RelatedById params={params} />
         </Suspense>
