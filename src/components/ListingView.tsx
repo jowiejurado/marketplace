@@ -36,113 +36,117 @@ export function ListingView({ listing, variant, titleId, related }: Props) {
   const Title = variant === "page" ? "h1" : "h2";
 
   return (
-    <article className={styles.view} data-variant={variant}>
-      <div className={styles.gallery}>
-        <ViewTransition name={`photo-${listing.id}`} share={{ filter: "none", default: "morph" }} default="none">
-          <div className={styles.frame}>
-            {listing.image_url ? (
-              <>
-                <Image src={listing.image_url} alt="" fill sizes={CARD_SIZES} className={styles.backdrop} aria-hidden="true" />
-                <Image src={listing.image_url} alt="" fill sizes={CARD_SIZES} className={styles.photo} aria-hidden="true" />
-                <Image
-                  src={listing.image_url}
-                  alt={listing.title}
-                  fill
-                  sizes={variant === "page" ? "(max-width: 900px) 100vw, 60vw" : "(max-width: 900px) 100vw, 640px"}
-                  className={styles.photo}
-                  data-sharp={sharp || undefined}
-                  onLoad={() => setSharp(true)}
-                  preload
-                />
-              </>
+    <>
+      <article className={styles.view} data-variant={variant}>
+        <div className={styles.gallery}>
+          <ViewTransition name={`photo-${listing.id}`} share={{ filter: "none", default: "morph" }} default="none">
+            <div className={styles.frame}>
+              {listing.image_url ? (
+                <>
+                  <Image src={listing.image_url} alt="" fill sizes={CARD_SIZES} className={styles.backdrop} aria-hidden="true" />
+                  <Image src={listing.image_url} alt="" fill sizes={CARD_SIZES} className={styles.photo} aria-hidden="true" />
+                  <Image
+                    src={listing.image_url}
+                    alt={listing.title}
+                    fill
+                    sizes={variant === "page" ? "(max-width: 900px) 100vw, 60vw" : "(max-width: 900px) 100vw, 640px"}
+                    className={styles.photo}
+                    data-sharp={sharp || undefined}
+                    onLoad={() => setSharp(true)}
+                    preload
+                  />
+                </>
+              ) : (
+                <PhotoIcon className={styles.noPhoto} aria-hidden="true" />
+              )}
+            </div>
+          </ViewTransition>
+        </div>
+
+        <div className={styles.panel} data-scroll>
+          <nav className={styles.crumbs} aria-label="Breadcrumb">
+            <Link href="/" transitionTypes={variant === "page" ? ["nav-back"] : undefined}>
+              Marketplace
+            </Link>
+            <ChevronRightIcon aria-hidden="true" />
+            <Link href={`/?c=${categorySlug(listing.category)}`} transitionTypes={variant === "page" ? ["nav-back"] : undefined}>
+              {listing.category}
+            </Link>
+          </nav>
+
+          <Title id={titleId} className={`display ${styles.title}`}>
+            {listing.title}
+          </Title>
+          <p className={styles.price}>
+            {formatPrice(listing.price)}
+            {listing.price === 0 && <span className={styles.freeNote}>Just come and get it</span>}
+          </p>
+
+          <ul className={styles.facts}>
+            <li>
+              <MapPinIcon aria-hidden="true" />
+              {listing.location}
+            </li>
+            <li>
+              <ClockIcon aria-hidden="true" />
+              <span>
+                Listed <TimeAgo iso={listing.created_at} />
+              </span>
+            </li>
+          </ul>
+
+          <div className={styles.actions}>
+            <a href={`#message-${listing.id}`} className="btn btn-primary" onClick={focusMessage}>
+              <ChatBubbleLeftEllipsisIcon aria-hidden="true" />
+              Message seller
+            </a>
+            <ShareButton id={listing.id} title={listing.title} />
+          </div>
+
+          <section className={styles.section}>
+            <h3 className={styles.sectionTitle}>Details</h3>
+            <dl className={styles.specs}>
+              <div>
+                <dt>Category</dt>
+                <dd>{listing.category}</dd>
+              </div>
+              <div>
+                <dt>Pickup</dt>
+                <dd>{listing.location}</dd>
+              </div>
+            </dl>
+            {listing.description ? (
+              <p className={styles.description}>{listing.description}</p>
             ) : (
-              <PhotoIcon className={styles.noPhoto} aria-hidden="true" />
+              <p className={styles.muted}>The seller didn’t add a description.</p>
             )}
+          </section>
+
+          <section className={styles.section}>
+            <h3 className={styles.sectionTitle}>Seller</h3>
+            <div className={styles.seller}>
+              <span className={styles.avatar} aria-hidden="true">
+                {sellerName.slice(0, 1).toUpperCase()}
+              </span>
+              <div className={styles.sellerText}>
+                <p className={styles.sellerName}>{sellerName}</p>
+                <CopyEmail email={listing.seller_email} />
+              </div>
+            </div>
+          </section>
+
+          <div id={`message-${listing.id}`} data-message-seller className={styles.message}>
+            <MessageSeller listingId={listing.id} listingTitle={listing.title} />
           </div>
-        </ViewTransition>
-      </div>
 
-      <div className={styles.panel} data-scroll>
-        <nav className={styles.crumbs} aria-label="Breadcrumb">
-          <Link href="/" transitionTypes={variant === "page" ? ["nav-back"] : undefined}>
-            Marketplace
-          </Link>
-          <ChevronRightIcon aria-hidden="true" />
-          <Link href={`/?c=${categorySlug(listing.category)}`} transitionTypes={variant === "page" ? ["nav-back"] : undefined}>
-            {listing.category}
-          </Link>
-        </nav>
-
-        <Title id={titleId} className={`display ${styles.title}`}>
-          {listing.title}
-        </Title>
-        <p className={styles.price}>
-          {formatPrice(listing.price)}
-          {listing.price === 0 && <span className={styles.freeNote}>Just come and get it</span>}
-        </p>
-
-        <ul className={styles.facts}>
-          <li>
-            <MapPinIcon aria-hidden="true" />
-            {listing.location}
-          </li>
-          <li>
-            <ClockIcon aria-hidden="true" />
-            <span>
-              Listed <TimeAgo iso={listing.created_at} />
-            </span>
-          </li>
-        </ul>
-
-        <div className={styles.actions}>
-          <a href={`#message-${listing.id}`} className="btn btn-primary" onClick={focusMessage}>
-            <ChatBubbleLeftEllipsisIcon aria-hidden="true" />
-            Message seller
-          </a>
-          <ShareButton id={listing.id} title={listing.title} />
+          {variant === "modal" && related}
         </div>
+      </article>
 
-        <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Details</h3>
-          <dl className={styles.specs}>
-            <div>
-              <dt>Category</dt>
-              <dd>{listing.category}</dd>
-            </div>
-            <div>
-              <dt>Pickup</dt>
-              <dd>{listing.location}</dd>
-            </div>
-          </dl>
-          {listing.description ? (
-            <p className={styles.description}>{listing.description}</p>
-          ) : (
-            <p className={styles.muted}>The seller didn’t add a description.</p>
-          )}
-        </section>
-
-        <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Seller</h3>
-          <div className={styles.seller}>
-            <span className={styles.avatar} aria-hidden="true">
-              {sellerName.slice(0, 1).toUpperCase()}
-            </span>
-            <div className={styles.sellerText}>
-              <p className={styles.sellerName}>{sellerName}</p>
-              <CopyEmail email={listing.seller_email} />
-            </div>
-          </div>
-        </section>
-
-        <div id={`message-${listing.id}`} data-message-seller className={styles.message}>
-          <MessageSeller listingId={listing.id} listingTitle={listing.title} />
-        </div>
-
-        {variant === "modal" && related}
-      </div>
-
+      {/* On the full page, related listings sit below the split view, outside the grid,
+          so the sticky photo can't slide over them while scrolling. */}
       {variant === "page" && related}
-    </article>
+    </>
   );
 }
 

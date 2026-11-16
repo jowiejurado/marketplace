@@ -243,9 +243,6 @@
   border-radius: 0;
 }
 
-.view[data-variant="page"] > :last-child:not(.panel) {
-  grid-column: 1 / -1;
-}
 
 /* ---------- Modal: split view, the photo fills its half ---------- */
 
